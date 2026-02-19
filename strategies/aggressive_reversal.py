@@ -12,12 +12,12 @@ class AggressiveReversalStrategy:
 
     def __init__(self, params: dict | None = None) -> None:
         params = params or {}
-        self.extreme_gap = float(params.get("extreme_gap", 0.02))
-        self.min_reversal = float(params.get("min_reversal", 0.008))
-        self.vol_cap = float(params.get("vol_cap_60s", 0.08))
-        self.bet_pct = float(params.get("bet_pct", 0.30))
-        self.window_low = int(params.get("window_low", 3))
-        self.window_high = int(params.get("window_high", 30))
+        self.extreme_gap = float(params.get("extreme_gap", 0.012))
+        self.min_reversal = float(params.get("min_reversal", 0.004))
+        self.vol_cap = float(params.get("vol_cap_60s", 0.10))
+        self.bet_pct = float(params.get("bet_pct", 0.40))
+        self.window_low = int(params.get("window_low", 4))
+        self.window_high = int(params.get("window_high", 55))
         self.entered = False
 
         self.last_ts_ms = 0
@@ -65,7 +65,7 @@ class AggressiveReversalStrategy:
 
         if not (self.window_low <= tick.time_remaining <= self.window_high):
             return None
-        if len(self.mids) < 35:
+        if len(self.mids) < 24:
             return None
         if self._vol(30) > self.vol_cap:
             return None
@@ -79,7 +79,11 @@ class AggressiveReversalStrategy:
             return None
         r1, r2 = self.rets[-2], self.rets[-1]
 
-        if gap >= self.extreme_gap and r1 < -self.min_reversal and r2 < -self.min_reversal:
+        if (
+            gap >= self.extreme_gap
+            and r1 < -self.min_reversal
+            and r2 < -self.min_reversal
+        ):
             self.entered = True
             return Action(
                 side="buy",
@@ -88,13 +92,34 @@ class AggressiveReversalStrategy:
                 comment=f"AR down gap={gap:.3f}",
             )
 
-        if gap <= -self.extreme_gap and r1 > self.min_reversal and r2 > self.min_reversal:
+        if (
+            gap <= -self.extreme_gap
+            and r1 > self.min_reversal
+            and r2 > self.min_reversal
+        ):
             self.entered = True
             return Action(
                 side="buy",
                 token="up",
                 size=self.bet_pct,
                 comment=f"AR up gap={gap:.3f}",
+            )
+
+        if tick.time_remaining <= 6 and tick.up_bid >= 0.97:
+            self.entered = True
+            return Action(
+                side="buy",
+                token="up",
+                size=max(self.bet_pct, 0.60),
+                comment="AR hard edge",
+            )
+        if tick.time_remaining <= 6 and tick.down_bid >= 0.97:
+            self.entered = True
+            return Action(
+                side="buy",
+                token="down",
+                size=max(self.bet_pct, 0.60),
+                comment="AR hard edge",
             )
 
         return None

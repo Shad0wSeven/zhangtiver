@@ -23,6 +23,8 @@ MAX_HISTORY_SECONDS = 900
 MAX_STREAM_ROWS = 250
 MAX_TRADE_HISTORY_ROWS = 250
 ROLLOVER_OVERLAP_SECONDS = 5
+PRELOAD_LOOKAHEAD_SECONDS = 20
+NEXT_LOOKUP_RETRY_SECONDS = 1.0
 WINDOW_START_CASH = 1000.0
 DEFAULT_BET_USD = 10.0
 
@@ -522,7 +524,7 @@ def get_market_info(timestamp: int) -> dict[str, Any] | None:
     slug = f"btc-updown-5m-{timestamp}"
     url = f"{API_URL}?slug={slug}"
     try:
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, timeout=2.0)
         if response.status_code == 200:
             data = response.json()
             if data:
@@ -585,7 +587,9 @@ def token_ids_from_market_info(market_info: dict[str, Any]) -> tuple[str, str] |
 class StrategyState:
     strategy: Any
     cash: float = WINDOW_START_CASH
-    positions: dict[str, float] = field(default_factory=lambda: {"up": 0.0, "down": 0.0})
+    positions: dict[str, float] = field(
+        default_factory=lambda: {"up": 0.0, "down": 0.0}
+    )
     costs: dict[str, float] = field(default_factory=lambda: {"up": 0.0, "down": 0.0})
     buys: int = 0
     sells: int = 0
@@ -627,7 +631,11 @@ class LiveTraderServer:
     def state_mtm(self, state: StrategyState) -> float:
         up_px = self.latest_tick.up_mid if self.latest_tick else 0.0
         down_px = self.latest_tick.down_mid if self.latest_tick else 0.0
-        return state.cash + state.positions["up"] * up_px + state.positions["down"] * down_px
+        return (
+            state.cash
+            + state.positions["up"] * up_px
+            + state.positions["down"] * down_px
+        )
 
     def state_unrealized(self, state: StrategyState) -> float:
         up_px = self.latest_tick.up_mid if self.latest_tick else 0.0
@@ -703,8 +711,16 @@ class LiveTraderServer:
             up_px = self.latest_tick.up_mid if self.latest_tick else 0.0
             down_px = self.latest_tick.down_mid if self.latest_tick else 0.0
             mtm = self.state_mtm(state)
-            avg_up_value = state.costs["up"] / state.positions["up"] if state.positions["up"] > 0 else 0.0
-            avg_down_value = state.costs["down"] / state.positions["down"] if state.positions["down"] > 0 else 0.0
+            avg_up_value = (
+                state.costs["up"] / state.positions["up"]
+                if state.positions["up"] > 0
+                else 0.0
+            )
+            avg_down_value = (
+                state.costs["down"] / state.positions["down"]
+                if state.positions["down"] > 0
+                else 0.0
+            )
             current_window_pnl = mtm - WINDOW_START_CASH
             session_pnl = state.session_profit_closed_windows + current_window_pnl
             deployed_pct = (
@@ -747,7 +763,9 @@ class LiveTraderServer:
         payload = {
             "type": "event",
             "market": (
-                f"btc-updown-5m-{self.current_market_ts}" if self.current_market_ts else None
+                f"btc-updown-5m-{self.current_market_ts}"
+                if self.current_market_ts
+                else None
             ),
             "clients": len(self.ws_clients),
             "event": event,
@@ -847,8 +865,14 @@ class LiveTraderServer:
         if side not in {"buy", "sell"} or token not in {"up", "down"} or size <= 0:
             return None
 
-        price = price_override if price_override is not None else (tick.up_mid if token == "up" else tick.down_mid)
-        timestamp_ms = time_override_ms if time_override_ms is not None else tick.timestamp_ms
+        price = (
+            price_override
+            if price_override is not None
+            else (tick.up_mid if token == "up" else tick.down_mid)
+        )
+        timestamp_ms = (
+            time_override_ms if time_override_ms is not None else tick.timestamp_ms
+        )
 
         if side == "buy":
             if size == 1.0:
@@ -962,9 +986,14 @@ class LiveTraderServer:
     async def settle_market(self, market_ts: int) -> None:
         if not self.latest_tick:
             return
-        winner = "up" if self.latest_tick.up_mid >= self.latest_tick.down_mid else "down"
+        winner = (
+            "up" if self.latest_tick.up_mid >= self.latest_tick.down_mid else "down"
+        )
         now_ms = int(time.time() * 1000)
-        settlement_price = {"up": 0.99 if winner == "up" else 0.0, "down": 0.99 if winner == "down" else 0.0}
+        settlement_price = {
+            "up": 0.99 if winner == "up" else 0.0,
+            "down": 0.99 if winner == "down" else 0.0,
+        }
 
         for state in self.states:
             for token in ("up", "down"):
@@ -1042,6 +1071,7 @@ class LiveTraderServer:
         next_down_book: dict[str, list[list[float]]] = {"bids": [], "asks": []}
         next_tokens: tuple[str, str] | None = None
         next_subscribed = False
+        next_lookup_due = 0.0
         next_seen_ms: set[int] = set()
         buffered_next_ticks: list[Tick] = []
         self.latest_books = {
@@ -1056,7 +1086,9 @@ class LiveTraderServer:
                         token_ids = [up_token, down_token]
                         await ws.send_json({"assets_ids": token_ids, "type": "market"})
                         await ws.receive()
-                        await ws.send_json({"assets_ids": token_ids, "operation": "subscribe"})
+                        await ws.send_json(
+                            {"assets_ids": token_ids, "operation": "subscribe"}
+                        )
                         log(f"connected {market_slug}")
 
                         while int(time.time()) < market_end:
@@ -1064,12 +1096,22 @@ class LiveTraderServer:
                             time_remaining = market_end - now
                             if (
                                 not next_subscribed
-                                and time_remaining <= ROLLOVER_OVERLAP_SECONDS
+                                and time_remaining <= PRELOAD_LOOKAHEAD_SECONDS
                             ):
-                                if next_tokens is None:
-                                    next_info = get_market_info(next_market_ts)
+                                if (
+                                    next_tokens is None
+                                    and time.monotonic() >= next_lookup_due
+                                ):
+                                    next_lookup_due = (
+                                        time.monotonic() + NEXT_LOOKUP_RETRY_SECONDS
+                                    )
+                                    next_info = await asyncio.to_thread(
+                                        get_market_info, next_market_ts
+                                    )
                                     if next_info:
-                                        next_tokens = token_ids_from_market_info(next_info)
+                                        next_tokens = token_ids_from_market_info(
+                                            next_info
+                                        )
                                 if next_tokens is not None:
                                     try:
                                         await ws.send_json(
@@ -1094,11 +1136,16 @@ class LiveTraderServer:
                                 continue
 
                             if msg.type != aiohttp.WSMsgType.TEXT:
-                                if msg.type in (aiohttp.WSMsgType.CLOSED, aiohttp.WSMsgType.CLOSING):
+                                if msg.type in (
+                                    aiohttp.WSMsgType.CLOSED,
+                                    aiohttp.WSMsgType.CLOSING,
+                                ):
                                     break
                                 continue
 
-                            if not msg.data.startswith("{") and not msg.data.startswith("["):
+                            if not msg.data.startswith("{") and not msg.data.startswith(
+                                "["
+                            ):
                                 continue
 
                             try:
@@ -1126,9 +1173,9 @@ class LiveTraderServer:
                                 )
 
                                 is_current = asset_id in (up_token, down_token)
-                                is_next = (
-                                    next_tokens is not None
-                                    and asset_id in (next_tokens[0], next_tokens[1])
+                                is_next = next_tokens is not None and asset_id in (
+                                    next_tokens[0],
+                                    next_tokens[1],
                                 )
 
                                 if asset_id == up_token:
@@ -1141,10 +1188,16 @@ class LiveTraderServer:
                                     down_book["asks"] = asks
                                     self.latest_books["down"]["bids"] = bids
                                     self.latest_books["down"]["asks"] = asks
-                                elif next_tokens is not None and asset_id == next_tokens[0]:
+                                elif (
+                                    next_tokens is not None
+                                    and asset_id == next_tokens[0]
+                                ):
                                     next_up_book["bids"] = bids
                                     next_up_book["asks"] = asks
-                                elif next_tokens is not None and asset_id == next_tokens[1]:
+                                elif (
+                                    next_tokens is not None
+                                    and asset_id == next_tokens[1]
+                                ):
                                     next_down_book["bids"] = bids
                                     next_down_book["asks"] = asks
 
@@ -1175,9 +1228,11 @@ class LiveTraderServer:
                                 ):
                                     if (
                                         now_ms
-                                        >= (next_market_ts - ROLLOVER_OVERLAP_SECONDS) * 1000
+                                        >= (next_market_ts - ROLLOVER_OVERLAP_SECONDS)
+                                        * 1000
                                         and now_ms
-                                        <= (next_market_ts + ROLLOVER_OVERLAP_SECONDS) * 1000
+                                        <= (next_market_ts + ROLLOVER_OVERLAP_SECONDS)
+                                        * 1000
                                         and now_ms not in next_seen_ms
                                     ):
                                         next_tick = self.tick_from_books(
@@ -1241,7 +1296,9 @@ class LiveTraderServer:
             await asyncio.sleep(0.05)
 
 
-async def start_server(host: str = "127.0.0.1", port: int = 8080, strategy_dir: str = "strategies") -> None:
+async def start_server(
+    host: str = "127.0.0.1", port: int = 8080, strategy_dir: str = "strategies"
+) -> None:
     trader = LiveTraderServer(strategy_dir=strategy_dir)
     loaded, errors = load_strategies(strategy_dir)
     for strategy in loaded:

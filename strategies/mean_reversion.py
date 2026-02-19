@@ -21,20 +21,20 @@ class TrendPullbackStrategy:
         params = params or {}
         self.short_n = int(params.get("short_n", 8))
         self.long_n = int(params.get("long_n", 36))
-        self.trend_gap_min = float(params.get("trend_gap_min", 0.008))
-        self.pullback_min = float(params.get("pullback_min", 0.004))
+        self.trend_gap_min = float(params.get("trend_gap_min", 0.004))
+        self.pullback_min = float(params.get("pullback_min", 0.002))
 
-        self.bid_strength_min = float(params.get("bid_strength_min", 0.02))
-        self.spread_cap = float(params.get("spread_cap", 0.015))
-        self.entry_price_cap = float(params.get("entry_price_cap", 0.94))
+        self.bid_strength_min = float(params.get("bid_strength_min", 0.01))
+        self.spread_cap = float(params.get("spread_cap", 0.03))
+        self.entry_price_cap = float(params.get("entry_price_cap", 0.97))
 
-        self.vol_cap_60s = float(params.get("vol_cap_60s", 0.04))
-        self.flip_rate_cap_60s = float(params.get("flip_rate_cap_60s", 0.22))
-        self.min_points = int(params.get("min_points", 20))
+        self.vol_cap_60s = float(params.get("vol_cap_60s", 0.07))
+        self.flip_rate_cap_60s = float(params.get("flip_rate_cap_60s", 0.35))
+        self.min_points = int(params.get("min_points", 12))
 
-        self.early_pct = float(params.get("early_pct", 0.20))
-        self.late_pct = float(params.get("late_pct", 0.30))
-        self.late_seconds = int(params.get("late_seconds", 8))
+        self.early_pct = float(params.get("early_pct", 0.25))
+        self.late_pct = float(params.get("late_pct", 0.40))
+        self.late_seconds = int(params.get("late_seconds", 14))
 
         self.entered = False
         self.last_ts_ms = 0
@@ -123,7 +123,20 @@ class TrendPullbackStrategy:
         down_strength = tick.down_bid - tick.up_bid
         up_spread = tick.up_ask - tick.up_bid
         down_spread = tick.down_ask - tick.down_bid
-        size = self.early_pct if tick.time_remaining > self.late_seconds else self.late_pct
+        size = (
+            self.early_pct if tick.time_remaining > self.late_seconds else self.late_pct
+        )
+
+        if tick.time_remaining <= 7 and tick.up_bid >= 0.97 and up_spread <= 0.03:
+            self.entered = True
+            return Action(
+                side="buy", token="up", size=max(size, 0.60), comment="TP hard edge"
+            )
+        if tick.time_remaining <= 7 and tick.down_bid >= 0.97 and down_spread <= 0.03:
+            self.entered = True
+            return Action(
+                side="buy", token="down", size=max(size, 0.60), comment="TP hard edge"
+            )
 
         if (
             trend_gap >= self.trend_gap_min
