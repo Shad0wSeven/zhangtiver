@@ -22,6 +22,10 @@ MAX_HISTORY = 6000
 MAX_HISTORY_SECONDS = 900
 MAX_STREAM_ROWS = 250
 MAX_TRADE_HISTORY_ROWS = 250
+TICK_QUEUE_MAX = 4000
+UI_EVENT_QUEUE_MAX = 4000
+UI_STATE_INTERVAL_S = 1.0
+TICK_COALESCE_BACKLOG = 25
 WINDOW_START_CASH = 1000.0
 DEFAULT_BET_USD = 10.0
 
@@ -492,10 +496,15 @@ Comment: ${s.last_comment || "-"}
         if (payload.type === "event") {
           marketEl.textContent = `market: ${payload.market || "-"}`;
           clockEl.textContent = `clients: ${payload.clients}`;
-          renderCards(payload.strategies);
-          renderMidQuote(payload.top_stats);
           appendLine(payload.event, streamEl, maxRows);
           if (payload.event.type === "trade") appendLine(payload.event, tradeTopEl, maxTradeRows, true);
+          return;
+        }
+        if (payload.type === "state") {
+          marketEl.textContent = `market: ${payload.market || "-"}`;
+          clockEl.textContent = `clients: ${payload.clients}`;
+          renderCards(payload.strategies || []);
+          renderMidQuote(payload.top_stats || null);
         }
       };
     }
@@ -624,6 +633,14 @@ class LiveTraderServer:
             "down": {"bids": [], "asks": []},
         }
         self.market_change_markers: deque[int] = deque(maxlen=200)
+        self.tick_queue: asyncio.Queue[Tick] = asyncio.Queue(maxsize=TICK_QUEUE_MAX)
+        self.ui_event_queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(
+            maxsize=UI_EVENT_QUEUE_MAX
+        )
+        self.worker_tasks: list[asyncio.Task[Any]] = []
+        self.dropped_ticks = 0
+        self.dropped_ui_events = 0
+        self.coalesced_ticks = 0
 
     def state_mtm(self, state: StrategyState) -> float:
         up_px = self.latest_tick.up_mid if self.latest_tick else 0.0
@@ -759,21 +776,47 @@ class LiveTraderServer:
             )
         return items
 
-    async def broadcast_event(self, event: dict[str, Any]) -> None:
+    def queue_ui_event(self, event: dict[str, Any]) -> None:
         self.stream.append(event)
         if event.get("type") == "trade":
             self.trade_history.append(event)
+
+        if self.ui_event_queue.full():
+            try:
+                self.ui_event_queue.get_nowait()
+                self.ui_event_queue.task_done()
+                self.dropped_ui_events += 1
+            except asyncio.QueueEmpty:
+                pass
+        try:
+            self.ui_event_queue.put_nowait(event)
+        except asyncio.QueueFull:
+            self.dropped_ui_events += 1
+
+    def queue_tick(self, tick: Tick) -> None:
+        if self.tick_queue.full():
+            try:
+                self.tick_queue.get_nowait()
+                self.tick_queue.task_done()
+                self.dropped_ticks += 1
+            except asyncio.QueueEmpty:
+                pass
+        try:
+            self.tick_queue.put_nowait(tick)
+        except asyncio.QueueFull:
+            self.dropped_ticks += 1
+
+    async def push_payload(self, payload: dict[str, Any]) -> None:
+        if not self.ws_clients:
+            return
         payload = {
-            "type": "event",
+            **payload,
             "market": (
                 f"btc-updown-5m-{self.current_market_ts}"
                 if self.current_market_ts
-                else None
+                else payload.get("market")
             ),
             "clients": len(self.ws_clients),
-            "event": event,
-            "strategies": self.summary(),
-            "top_stats": self.top_stats(),
         }
         raw = json.dumps(payload)
         dead: list[web.WebSocketResponse] = []
@@ -784,6 +827,71 @@ class LiveTraderServer:
                 dead.append(ws)
         for ws in dead:
             self.ws_clients.discard(ws)
+
+    async def ui_event_broadcast_loop(self) -> None:
+        while True:
+            event = await self.ui_event_queue.get()
+            try:
+                await self.push_payload({"type": "event", "event": event})
+            finally:
+                self.ui_event_queue.task_done()
+
+    async def ui_state_broadcast_loop(self) -> None:
+        while True:
+            await asyncio.sleep(UI_STATE_INTERVAL_S)
+            if not self.ws_clients:
+                continue
+            await self.push_payload(
+                {
+                    "type": "state",
+                    "strategies": self.summary(),
+                    "top_stats": self.top_stats(),
+                }
+            )
+
+    async def strategy_tick_loop(self) -> None:
+        while True:
+            tick = await self.tick_queue.get()
+            try:
+                if self.tick_queue.qsize() >= TICK_COALESCE_BACKLOG:
+                    while True:
+                        try:
+                            newer_tick = self.tick_queue.get_nowait()
+                        except asyncio.QueueEmpty:
+                            break
+                        self.tick_queue.task_done()
+                        tick = newer_tick
+                        self.coalesced_ticks += 1
+                self.process_tick(tick)
+            except Exception as exc:
+                self.queue_ui_event(
+                    {
+                        "type": "system",
+                        "time": self.to_clock(int(time.time() * 1000)),
+                        "message": f"tick processor error: {exc}",
+                    }
+                )
+            finally:
+                self.tick_queue.task_done()
+
+    def start_workers(self) -> None:
+        if self.worker_tasks:
+            return
+        self.worker_tasks = [
+            asyncio.create_task(self.strategy_tick_loop()),
+            asyncio.create_task(self.ui_event_broadcast_loop()),
+            asyncio.create_task(self.ui_state_broadcast_loop()),
+        ]
+
+    async def stop_workers(self) -> None:
+        for task in self.worker_tasks:
+            task.cancel()
+        for task in self.worker_tasks:
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
+        self.worker_tasks = []
 
     async def handle_index(self, _: web.Request) -> web.Response:
         return web.Response(text=INDEX_HTML, content_type="text/html")
@@ -832,6 +940,60 @@ class LiveTraderServer:
         up_ask = up_book["asks"][0][0]
         down_bid = down_book["bids"][0][0]
         down_ask = down_book["asks"][0][0]
+        return Tick(
+            timestamp=now,
+            timestamp_ms=now_ms,
+            market_ts=market_ts,
+            time_remaining=max(0, market_end - now),
+            up_bid=up_bid,
+            up_ask=up_ask,
+            up_mid=(up_bid + up_ask) / 2.0,
+            down_bid=down_bid,
+            down_ask=down_ask,
+            down_mid=(down_bid + down_ask) / 2.0,
+        )
+
+    def tick_from_books_with_fallback(
+        self,
+        market_ts: int,
+        market_end: int,
+        up_book: dict[str, list[list[float]]],
+        down_book: dict[str, list[list[float]]],
+        now_ms: int,
+    ) -> Tick | None:
+        def top(
+            book: dict[str, list[list[float]]], side: str, default: float | None = None
+        ) -> float | None:
+            levels = book[side]
+            if levels:
+                return levels[0][0]
+            return default
+
+        up_bid = top(up_book, "bids")
+        up_ask = top(up_book, "asks")
+        down_bid = top(down_book, "bids")
+        down_ask = top(down_book, "asks")
+
+        # Fallback to complement market prices when one side thins out near close.
+        if up_bid is None and down_ask is not None:
+            up_bid = 1.0 - down_ask
+        if up_ask is None and down_bid is not None:
+            up_ask = 1.0 - down_bid
+        if down_bid is None and up_ask is not None:
+            down_bid = 1.0 - up_ask
+        if down_ask is None and up_bid is not None:
+            down_ask = 1.0 - up_bid
+
+        if None in (up_bid, up_ask, down_bid, down_ask):
+            return None
+
+        # Keep quotes sane if crossed due to fallback/parsing timing.
+        up_bid = max(0.0, min(1.0, float(up_bid)))
+        up_ask = max(up_bid, min(1.0, float(up_ask)))
+        down_bid = max(0.0, min(1.0, float(down_bid)))
+        down_ask = max(down_bid, min(1.0, float(down_ask)))
+
+        now = now_ms // 1000
         return Tick(
             timestamp=now,
             timestamp_ms=now_ms,
@@ -941,14 +1103,14 @@ class LiveTraderServer:
             "comment": action.comment,
         }
 
-    async def process_tick(self, tick: Tick) -> None:
+    def process_tick(self, tick: Tick) -> None:
         self.latest_tick = tick
         self.history.append(tick)
         # Keep only recent ticks to prevent long-session slowdown and memory growth.
         cutoff = tick.timestamp - MAX_HISTORY_SECONDS
         while self.history and self.history[0].timestamp < cutoff:
             self.history.popleft()
-        await self.broadcast_event(
+        self.queue_ui_event(
             {
                 "type": "tick",
                 "time": self.to_clock(tick.timestamp_ms),
@@ -963,10 +1125,9 @@ class LiveTraderServer:
             }
         )
 
-        history_list = list(self.history)
         for state in self.states:
             ctx = StrategyContext(
-                history=history_list,
+                history=self.history,
                 positions=dict(state.positions),
                 market_ts=tick.market_ts,
             )
@@ -975,10 +1136,10 @@ class LiveTraderServer:
                 for action in actions:
                     evt = self.apply_trade(state, action, tick)
                     if evt:
-                        await self.broadcast_event(evt)
+                        self.queue_ui_event(evt)
             except Exception as exc:
                 state.last_comment = f"error: {exc}"
-                await self.broadcast_event(
+                self.queue_ui_event(
                     {
                         "type": "system",
                         "time": self.to_clock(tick.timestamp_ms),
@@ -1017,7 +1178,7 @@ class LiveTraderServer:
                     time_override_ms=now_ms,
                 )
                 if evt:
-                    await self.broadcast_event(evt)
+                    self.queue_ui_event(evt)
 
             try:
                 ctx = StrategyContext(
@@ -1031,7 +1192,7 @@ class LiveTraderServer:
             except Exception:
                 pass
 
-        await self.broadcast_event(
+        self.queue_ui_event(
             {
                 "type": "system",
                 "time": self.to_clock(now_ms),
@@ -1086,22 +1247,17 @@ class LiveTraderServer:
                             except asyncio.TimeoutError:
                                 now_ms = int(time.time() * 1000)
                                 now_sec = now_ms // 1000
-                                if (
-                                    now_sec != last_heartbeat_sec
-                                    and up_book["bids"]
-                                    and up_book["asks"]
-                                    and down_book["bids"]
-                                    and down_book["asks"]
-                                ):
+                                if now_sec != last_heartbeat_sec:
                                     last_heartbeat_sec = now_sec
-                                    heartbeat_tick = self.tick_from_books(
+                                    heartbeat_tick = self.tick_from_books_with_fallback(
                                         market_ts=market_ts,
                                         market_end=market_end,
                                         up_book=up_book,
                                         down_book=down_book,
                                         now_ms=now_ms,
                                     )
-                                    await self.process_tick(heartbeat_tick)
+                                    if heartbeat_tick is not None:
+                                        self.queue_tick(heartbeat_tick)
                                 continue
 
                             if msg.type != aiohttp.WSMsgType.TEXT:
@@ -1142,39 +1298,46 @@ class LiveTraderServer:
                                 )
 
                                 if asset_id == up_token:
-                                    up_book["bids"] = bids
-                                    up_book["asks"] = asks
+                                    if bids:
+                                        up_book["bids"] = bids
+                                    if asks:
+                                        up_book["asks"] = asks
                                     self.latest_books["up"]["bids"] = bids
                                     self.latest_books["up"]["asks"] = asks
                                 elif asset_id == down_token:
-                                    down_book["bids"] = bids
-                                    down_book["asks"] = asks
+                                    if bids:
+                                        down_book["bids"] = bids
+                                    if asks:
+                                        down_book["asks"] = asks
                                     self.latest_books["down"]["bids"] = bids
                                     self.latest_books["down"]["asks"] = asks
                                 else:
                                     continue
 
-                                if (
-                                    not up_book["bids"]
-                                    or not up_book["asks"]
-                                    or not down_book["bids"]
-                                    or not down_book["asks"]
-                                ):
-                                    continue
-
                                 now_ms = int(time.time() * 1000)
-                                tick = self.tick_from_books(
+                                tick = self.tick_from_books_with_fallback(
                                     market_ts=market_ts,
                                     market_end=market_end,
                                     up_book=up_book,
                                     down_book=down_book,
                                     now_ms=now_ms,
                                 )
-                                await self.process_tick(tick)
+                                if tick is not None:
+                                    self.queue_tick(tick)
             except Exception as exc:
                 log(f"ws error {market_slug}: {exc}")
                 await asyncio.sleep(1)
 
+        await self.tick_queue.join()
+        if self.dropped_ticks > 0:
+            log(f"dropped ticks during {market_slug}: {self.dropped_ticks}")
+            self.dropped_ticks = 0
+        if self.dropped_ui_events > 0:
+            log(f"dropped ui events during {market_slug}: {self.dropped_ui_events}")
+            self.dropped_ui_events = 0
+        if self.coalesced_ticks > 0:
+            log(f"coalesced stale ticks during {market_slug}: {self.coalesced_ticks}")
+            self.coalesced_ticks = 0
         await self.settle_market(market_ts)
 
     async def market_loop(self) -> None:
@@ -1203,7 +1366,7 @@ class LiveTraderServer:
 
             now_ms = int(time.time() * 1000)
             self.market_change_markers.append(now_ms)
-            await self.broadcast_event(
+            self.queue_ui_event(
                 {
                     "type": "system",
                     "time": self.to_clock(now_ms),
@@ -1233,6 +1396,7 @@ async def start_server(
     app.router.add_get("/ws", trader.handle_ws)
 
     async def on_startup(_: web.Application) -> None:
+        trader.start_workers()
         app["market_task"] = asyncio.create_task(trader.market_loop())
 
     async def on_cleanup(_: web.Application) -> None:
@@ -1242,6 +1406,7 @@ async def start_server(
             await task
         except asyncio.CancelledError:
             pass
+        await trader.stop_workers()
 
     app.on_startup.append(on_startup)
     app.on_cleanup.append(on_cleanup)

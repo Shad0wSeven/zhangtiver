@@ -50,3 +50,19 @@ Included examples:
 
 - `strategies/mean_reversion.py`
 - `strategies/momentum.py`
+- `strategies/active_pair_scalper.py`
+- `strategies/active_pair_ladder.py`
+
+### Tune New Active Strategies
+
+```bash
+python3 -m backtester.cli tune \
+  --strategy-file strategies/active_pair_scalper.py \
+  --grid-file backtester/grids/active_pair_scalper_fast.json \
+  --end-threshold-s 40 --max-combos 220 --progress-every 40 --top-k 8
+
+python3 -m backtester.cli tune \
+  --strategy-file strategies/active_pair_ladder.py \
+  --grid-file backtester/grids/active_pair_ladder_fast.json \
+  --end-threshold-s 40 --max-combos 220 --progress-every 40 --top-k 8
+```
