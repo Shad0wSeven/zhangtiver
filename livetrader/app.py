@@ -22,9 +22,6 @@ MAX_HISTORY = 6000
 MAX_HISTORY_SECONDS = 900
 MAX_STREAM_ROWS = 250
 MAX_TRADE_HISTORY_ROWS = 250
-ROLLOVER_OVERLAP_SECONDS = 5
-PRELOAD_LOOKAHEAD_SECONDS = 20
-NEXT_LOOKUP_RETRY_SECONDS = 1.0
 WINDOW_START_CASH = 1000.0
 DEFAULT_BET_USD = 10.0
 
@@ -651,7 +648,13 @@ class LiveTraderServer:
         up_ask = self.latest_tick.up_ask if self.latest_tick else None
         down_bid = self.latest_tick.down_bid if self.latest_tick else None
         down_ask = self.latest_tick.down_ask if self.latest_tick else None
-        time_remaining = self.latest_tick.time_remaining if self.latest_tick else None
+        if self.current_market_ts is not None:
+            market_end = self.current_market_ts + 300
+            time_remaining = max(0, market_end - int(time.time()))
+        else:
+            time_remaining = (
+                self.latest_tick.time_remaining if self.latest_tick else None
+            )
 
         up_bid_depth = sum(p * s for p, s in self.latest_books["up"]["bids"])
         up_ask_depth = sum(p * s for p, s in self.latest_books["up"]["asks"])
@@ -1036,44 +1039,30 @@ class LiveTraderServer:
             }
         )
 
-    async def run_market_stream(
-        self, market_ts: int, seed_ticks: list[Tick] | None = None
-    ) -> list[Tick]:
+    async def run_market_stream(self, market_ts: int) -> None:
         market_end = market_ts + 300
         market_slug = f"btc-updown-5m-{market_ts}"
-        next_market_ts = market_ts + 300
-        next_market_end = next_market_ts + 300
-
-        if seed_ticks:
-            for tick in sorted(seed_ticks, key=lambda t: t.timestamp_ms):
-                await self.process_tick(tick)
 
         info = None
         for _ in range(12):
-            info = get_market_info(market_ts)
+            info = await asyncio.to_thread(get_market_info, market_ts)
             if info is not None:
                 break
             await asyncio.sleep(0.5)
         if info is None:
             log(f"market not found after retries: {market_slug}")
-            return []
+            return
 
         tokens = token_ids_from_market_info(info)
         if tokens is None:
             log(f"invalid market token data: {market_slug}")
-            return []
+            return
         up_token, down_token = tokens
         log(f"market {market_slug} up={up_token} down={down_token}")
 
         up_book: dict[str, list[list[float]]] = {"bids": [], "asks": []}
         down_book: dict[str, list[list[float]]] = {"bids": [], "asks": []}
-        next_up_book: dict[str, list[list[float]]] = {"bids": [], "asks": []}
-        next_down_book: dict[str, list[list[float]]] = {"bids": [], "asks": []}
-        next_tokens: tuple[str, str] | None = None
-        next_subscribed = False
-        next_lookup_due = 0.0
-        next_seen_ms: set[int] = set()
-        buffered_next_ticks: list[Tick] = []
+        last_heartbeat_sec = -1
         self.latest_books = {
             "up": {"bids": [], "asks": []},
             "down": {"bids": [], "asks": []},
@@ -1092,47 +1081,27 @@ class LiveTraderServer:
                         log(f"connected {market_slug}")
 
                         while int(time.time()) < market_end:
-                            now = int(time.time())
-                            time_remaining = market_end - now
-                            if (
-                                not next_subscribed
-                                and time_remaining <= PRELOAD_LOOKAHEAD_SECONDS
-                            ):
-                                if (
-                                    next_tokens is None
-                                    and time.monotonic() >= next_lookup_due
-                                ):
-                                    next_lookup_due = (
-                                        time.monotonic() + NEXT_LOOKUP_RETRY_SECONDS
-                                    )
-                                    next_info = await asyncio.to_thread(
-                                        get_market_info, next_market_ts
-                                    )
-                                    if next_info:
-                                        next_tokens = token_ids_from_market_info(
-                                            next_info
-                                        )
-                                if next_tokens is not None:
-                                    try:
-                                        await ws.send_json(
-                                            {
-                                                "assets_ids": [
-                                                    next_tokens[0],
-                                                    next_tokens[1],
-                                                ],
-                                                "operation": "subscribe",
-                                            }
-                                        )
-                                        next_subscribed = True
-                                        log(
-                                            f"preloaded next market tokens for overlap: btc-updown-5m-{next_market_ts}"
-                                        )
-                                    except Exception:
-                                        pass
-
                             try:
                                 msg = await ws.receive(timeout=1.0)
                             except asyncio.TimeoutError:
+                                now_ms = int(time.time() * 1000)
+                                now_sec = now_ms // 1000
+                                if (
+                                    now_sec != last_heartbeat_sec
+                                    and up_book["bids"]
+                                    and up_book["asks"]
+                                    and down_book["bids"]
+                                    and down_book["asks"]
+                                ):
+                                    last_heartbeat_sec = now_sec
+                                    heartbeat_tick = self.tick_from_books(
+                                        market_ts=market_ts,
+                                        market_end=market_end,
+                                        up_book=up_book,
+                                        down_book=down_book,
+                                        now_ms=now_ms,
+                                    )
+                                    await self.process_tick(heartbeat_tick)
                                 continue
 
                             if msg.type != aiohttp.WSMsgType.TEXT:
@@ -1172,12 +1141,6 @@ class LiveTraderServer:
                                     target_volume_usd=ORDERBOOK_DEPTH_USD,
                                 )
 
-                                is_current = asset_id in (up_token, down_token)
-                                is_next = next_tokens is not None and asset_id in (
-                                    next_tokens[0],
-                                    next_tokens[1],
-                                )
-
                                 if asset_id == up_token:
                                     up_book["bids"] = bids
                                     up_book["asks"] = asks
@@ -1188,20 +1151,10 @@ class LiveTraderServer:
                                     down_book["asks"] = asks
                                     self.latest_books["down"]["bids"] = bids
                                     self.latest_books["down"]["asks"] = asks
-                                elif (
-                                    next_tokens is not None
-                                    and asset_id == next_tokens[0]
-                                ):
-                                    next_up_book["bids"] = bids
-                                    next_up_book["asks"] = asks
-                                elif (
-                                    next_tokens is not None
-                                    and asset_id == next_tokens[1]
-                                ):
-                                    next_down_book["bids"] = bids
-                                    next_down_book["asks"] = asks
+                                else:
+                                    continue
 
-                                if is_current and (
+                                if (
                                     not up_book["bids"]
                                     or not up_book["asks"]
                                     or not down_book["bids"]
@@ -1210,58 +1163,25 @@ class LiveTraderServer:
                                     continue
 
                                 now_ms = int(time.time() * 1000)
-                                if is_current:
-                                    tick = self.tick_from_books(
-                                        market_ts=market_ts,
-                                        market_end=market_end,
-                                        up_book=up_book,
-                                        down_book=down_book,
-                                        now_ms=now_ms,
-                                    )
-                                    await self.process_tick(tick)
-
-                                if is_next and (
-                                    next_up_book["bids"]
-                                    and next_up_book["asks"]
-                                    and next_down_book["bids"]
-                                    and next_down_book["asks"]
-                                ):
-                                    if (
-                                        now_ms
-                                        >= (next_market_ts - ROLLOVER_OVERLAP_SECONDS)
-                                        * 1000
-                                        and now_ms
-                                        <= (next_market_ts + ROLLOVER_OVERLAP_SECONDS)
-                                        * 1000
-                                        and now_ms not in next_seen_ms
-                                    ):
-                                        next_tick = self.tick_from_books(
-                                            market_ts=next_market_ts,
-                                            market_end=next_market_end,
-                                            up_book=next_up_book,
-                                            down_book=next_down_book,
-                                            now_ms=now_ms,
-                                        )
-                                        next_seen_ms.add(now_ms)
-                                        buffered_next_ticks.append(next_tick)
+                                tick = self.tick_from_books(
+                                    market_ts=market_ts,
+                                    market_end=market_end,
+                                    up_book=up_book,
+                                    down_book=down_book,
+                                    now_ms=now_ms,
+                                )
+                                await self.process_tick(tick)
             except Exception as exc:
                 log(f"ws error {market_slug}: {exc}")
                 await asyncio.sleep(1)
 
         await self.settle_market(market_ts)
-        buffered_next_ticks = [
-            tick for tick in buffered_next_ticks if tick.timestamp >= next_market_ts
-        ]
-        buffered_next_ticks.sort(key=lambda t: t.timestamp_ms)
-        return buffered_next_ticks
 
     async def market_loop(self) -> None:
-        seed_by_market: dict[int, list[Tick]] = {}
         while True:
             market_ts = get_current_market_timestamp()
             self.current_market_ts = market_ts
             self.latest_tick = None
-            seed_ticks = seed_by_market.pop(market_ts, [])
 
             for state in self.states:
                 # Close prior window accounting, then restart each strategy with fresh
@@ -1290,9 +1210,7 @@ class LiveTraderServer:
                     "message": f"NEW MARKET btc-updown-5m-{market_ts}",
                 }
             )
-            next_seed = await self.run_market_stream(market_ts, seed_ticks=seed_ticks)
-            if next_seed:
-                seed_by_market[market_ts + 300] = next_seed
+            await self.run_market_stream(market_ts)
             await asyncio.sleep(0.05)
 
 

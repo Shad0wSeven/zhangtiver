@@ -39,8 +39,6 @@ WS_URL = "wss://ws-subscriptions-clob.polymarket.com/ws/market"
 API_URL = "https://gamma-api.polymarket.com/markets"
 ORDERBOOK_DEPTH_USD = 1000  # Capture up to $1000 of volume
 CONDENSED_MIN_PRICE_MOVE = 0.005
-PRELOAD_LOOKAHEAD_SECONDS = 20
-NEXT_LOOKUP_RETRY_SECONDS = 1.0
 
 
 def parse_args():
@@ -212,16 +210,14 @@ def resolve_market_tokens(market_info):
     return None
 
 
-async def log_market(market_ts, seed_entries=None):
-    """Log a single 5-minute market and pre-buffer next-market overlap rows."""
+async def log_market(market_ts):
+    """Log a single 5-minute market."""
     market_slug = f"btc-updown-5m-{market_ts}"
     market_end = market_ts + 300
-    next_market_ts = market_ts + 300
-    next_market_end = next_market_ts + 300
 
     log(f"Starting market: {market_slug}")
 
-    market_info = get_market_info(market_ts)
+    market_info = await asyncio.to_thread(get_market_info, market_ts)
     if not market_info:
         log(f"Market not found: {market_slug}")
         return []
@@ -236,21 +232,9 @@ async def log_market(market_ts, seed_entries=None):
 
     up_orderbook = {"bids": [], "asks": []}
     down_orderbook = {"bids": [], "asks": []}
-    next_up_orderbook = {"bids": [], "asks": []}
-    next_down_orderbook = {"bids": [], "asks": []}
 
     updates_logged = 0
     last_logged_prices = None
-    next_tokens = None
-    next_subscribed = False
-    next_lookup_due = 0.0
-    buffered_next_entries = []
-    next_seen_ms = set()
-
-    if seed_entries:
-        for entry in seed_entries:
-            write_jsonl(entry)
-            updates_logged += 1
 
     try:
         async with aiohttp.ClientSession() as session:
@@ -268,37 +252,6 @@ async def log_market(market_ts, seed_entries=None):
                         print()
                         log(f"Market ended. Logged {updates_logged} updates")
                         break
-
-                    if (
-                        not next_subscribed
-                        and time_remaining <= PRELOAD_LOOKAHEAD_SECONDS
-                    ):
-                        if next_tokens is None and time.monotonic() >= next_lookup_due:
-                            next_lookup_due = (
-                                time.monotonic() + NEXT_LOOKUP_RETRY_SECONDS
-                            )
-                            next_info = await asyncio.to_thread(
-                                get_market_info, next_market_ts
-                            )
-                            if next_info:
-                                next_tokens = resolve_market_tokens(next_info)
-                        if next_tokens is not None:
-                            try:
-                                await ws.send_json(
-                                    {
-                                        "assets_ids": [
-                                            next_tokens[0],
-                                            next_tokens[1],
-                                        ],
-                                        "operation": "subscribe",
-                                    }
-                                )
-                                next_subscribed = True
-                                log(
-                                    f"Preloaded overlap for next market: btc-updown-5m-{next_market_ts}"
-                                )
-                            except Exception:
-                                pass
 
                     try:
                         msg = await ws.receive(timeout=1.0)
@@ -334,29 +287,19 @@ async def log_market(market_ts, seed_entries=None):
                                 target_volume_usd=ORDERBOOK_DEPTH_USD,
                             )
 
-                            is_current = asset_id in (up_token, down_token)
-                            is_next = next_tokens is not None and asset_id in (
-                                next_tokens[0],
-                                next_tokens[1],
-                            )
-
                             if asset_id == up_token:
                                 up_orderbook["bids"] = parsed_bids
                                 up_orderbook["asks"] = parsed_asks
                             elif asset_id == down_token:
                                 down_orderbook["bids"] = parsed_bids
                                 down_orderbook["asks"] = parsed_asks
-                            elif next_tokens is not None and asset_id == next_tokens[0]:
-                                next_up_orderbook["bids"] = parsed_bids
-                                next_up_orderbook["asks"] = parsed_asks
-                            elif next_tokens is not None and asset_id == next_tokens[1]:
-                                next_down_orderbook["bids"] = parsed_bids
-                                next_down_orderbook["asks"] = parsed_asks
+                            else:
+                                continue
 
                             now_ms = int(time.time() * 1000)
                             now = now_ms // 1000
 
-                            if is_current and (
+                            if (
                                 up_orderbook["bids"]
                                 and up_orderbook["asks"]
                                 and down_orderbook["bids"]
@@ -405,33 +348,6 @@ async def log_market(market_ts, seed_entries=None):
                                             flush=True,
                                         )
 
-                            if is_next and (
-                                next_up_orderbook["bids"]
-                                and next_up_orderbook["asks"]
-                                and next_down_orderbook["bids"]
-                                and next_down_orderbook["asks"]
-                            ):
-                                if (
-                                    now_ms >= (next_market_ts - 5) * 1000
-                                    and now_ms <= (next_market_ts + 5) * 1000
-                                    and now_ms not in next_seen_ms
-                                ):
-                                    next_seen_ms.add(now_ms)
-                                    buffered_next_entries.append(
-                                        {
-                                            "timestamp": now,
-                                            "timestamp_ms": now_ms,
-                                            "market": f"btc-updown-5m-{next_market_ts}",
-                                            "up_bids": next_up_orderbook["bids"],
-                                            "up_asks": next_up_orderbook["asks"],
-                                            "down_bids": next_down_orderbook["bids"],
-                                            "down_asks": next_down_orderbook["asks"],
-                                            "time_remaining": max(
-                                                0, next_market_end - now
-                                            ),
-                                        }
-                                    )
-
                     elif msg.type == aiohttp.WSMsgType.ERROR:
                         log("WebSocket error")
                         break
@@ -441,13 +357,7 @@ async def log_market(market_ts, seed_entries=None):
         import traceback
 
         traceback.print_exc()
-        return []
-
-    buffered_next_entries = [
-        row for row in buffered_next_entries if row["timestamp"] >= next_market_ts
-    ]
-    buffered_next_entries.sort(key=lambda x: x["timestamp_ms"])
-    return buffered_next_entries
+        return
 
 
 async def main():
@@ -463,7 +373,6 @@ async def main():
     log("")
 
     current_market_ts = None
-    seed_by_market = {}
 
     while True:
         try:
@@ -475,10 +384,7 @@ async def main():
                 current_market_ts = market_ts
 
                 # Log this market
-                seed_entries = seed_by_market.pop(market_ts, None)
-                next_seed = await log_market(market_ts, seed_entries=seed_entries)
-                if next_seed:
-                    seed_by_market[market_ts + 300] = next_seed
+                await log_market(market_ts)
                 await asyncio.sleep(0.05)
             else:
                 # Still in same market, wait
