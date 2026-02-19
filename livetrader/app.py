@@ -1015,9 +1015,18 @@ class LiveTraderServer:
         next_market_ts = market_ts + 300
         next_market_end = next_market_ts + 300
 
-        info = get_market_info(market_ts)
+        if seed_ticks:
+            for tick in sorted(seed_ticks, key=lambda t: t.timestamp_ms):
+                await self.process_tick(tick)
+
+        info = None
+        for _ in range(12):
+            info = get_market_info(market_ts)
+            if info is not None:
+                break
+            await asyncio.sleep(0.5)
         if info is None:
-            log(f"market not found: {market_slug}")
+            log(f"market not found after retries: {market_slug}")
             return []
 
         tokens = token_ids_from_market_info(info)
@@ -1039,10 +1048,6 @@ class LiveTraderServer:
             "up": {"bids": [], "asks": []},
             "down": {"bids": [], "asks": []},
         }
-
-        if seed_ticks:
-            for tick in sorted(seed_ticks, key=lambda t: t.timestamp_ms):
-                await self.process_tick(tick)
 
         while int(time.time()) < market_end:
             try:
@@ -1097,89 +1102,93 @@ class LiveTraderServer:
                                 continue
 
                             try:
-                                data = msg.json()
+                                raw = msg.json()
                             except Exception:
                                 continue
 
-                            if data.get("event_type") != "book":
-                                continue
+                            events = raw if isinstance(raw, list) else [raw]
+                            for data in events:
+                                if not isinstance(data, dict):
+                                    continue
+                                if data.get("event_type") != "book":
+                                    continue
 
-                            asset_id = data.get("asset_id")
-                            bids = parse_orderbook_side(
-                                data.get("bids", []),
-                                is_bid=True,
-                                target_volume_usd=ORDERBOOK_DEPTH_USD,
-                            )
-                            asks = parse_orderbook_side(
-                                data.get("asks", []),
-                                is_bid=False,
-                                target_volume_usd=ORDERBOOK_DEPTH_USD,
-                            )
-
-                            is_current = asset_id in (up_token, down_token)
-                            is_next = (
-                                next_tokens is not None
-                                and asset_id in (next_tokens[0], next_tokens[1])
-                            )
-
-                            if asset_id == up_token:
-                                up_book["bids"] = bids
-                                up_book["asks"] = asks
-                                self.latest_books["up"]["bids"] = bids
-                                self.latest_books["up"]["asks"] = asks
-                            elif asset_id == down_token:
-                                down_book["bids"] = bids
-                                down_book["asks"] = asks
-                                self.latest_books["down"]["bids"] = bids
-                                self.latest_books["down"]["asks"] = asks
-                            elif next_tokens is not None and asset_id == next_tokens[0]:
-                                next_up_book["bids"] = bids
-                                next_up_book["asks"] = asks
-                            elif next_tokens is not None and asset_id == next_tokens[1]:
-                                next_down_book["bids"] = bids
-                                next_down_book["asks"] = asks
-
-                            if is_current and (
-                                not up_book["bids"]
-                                or not up_book["asks"]
-                                or not down_book["bids"]
-                                or not down_book["asks"]
-                            ):
-                                continue
-
-                            now_ms = int(time.time() * 1000)
-                            if is_current:
-                                tick = self.tick_from_books(
-                                    market_ts=market_ts,
-                                    market_end=market_end,
-                                    up_book=up_book,
-                                    down_book=down_book,
-                                    now_ms=now_ms,
+                                asset_id = data.get("asset_id")
+                                bids = parse_orderbook_side(
+                                    data.get("bids", []),
+                                    is_bid=True,
+                                    target_volume_usd=ORDERBOOK_DEPTH_USD,
                                 )
-                                await self.process_tick(tick)
+                                asks = parse_orderbook_side(
+                                    data.get("asks", []),
+                                    is_bid=False,
+                                    target_volume_usd=ORDERBOOK_DEPTH_USD,
+                                )
 
-                            if is_next and (
-                                next_up_book["bids"]
-                                and next_up_book["asks"]
-                                and next_down_book["bids"]
-                                and next_down_book["asks"]
-                            ):
-                                if (
-                                    now_ms
-                                    >= (next_market_ts - ROLLOVER_OVERLAP_SECONDS) * 1000
-                                    and now_ms
-                                    <= (next_market_ts + ROLLOVER_OVERLAP_SECONDS) * 1000
-                                    and now_ms not in next_seen_ms
+                                is_current = asset_id in (up_token, down_token)
+                                is_next = (
+                                    next_tokens is not None
+                                    and asset_id in (next_tokens[0], next_tokens[1])
+                                )
+
+                                if asset_id == up_token:
+                                    up_book["bids"] = bids
+                                    up_book["asks"] = asks
+                                    self.latest_books["up"]["bids"] = bids
+                                    self.latest_books["up"]["asks"] = asks
+                                elif asset_id == down_token:
+                                    down_book["bids"] = bids
+                                    down_book["asks"] = asks
+                                    self.latest_books["down"]["bids"] = bids
+                                    self.latest_books["down"]["asks"] = asks
+                                elif next_tokens is not None and asset_id == next_tokens[0]:
+                                    next_up_book["bids"] = bids
+                                    next_up_book["asks"] = asks
+                                elif next_tokens is not None and asset_id == next_tokens[1]:
+                                    next_down_book["bids"] = bids
+                                    next_down_book["asks"] = asks
+
+                                if is_current and (
+                                    not up_book["bids"]
+                                    or not up_book["asks"]
+                                    or not down_book["bids"]
+                                    or not down_book["asks"]
                                 ):
-                                    next_tick = self.tick_from_books(
-                                        market_ts=next_market_ts,
-                                        market_end=next_market_end,
-                                        up_book=next_up_book,
-                                        down_book=next_down_book,
+                                    continue
+
+                                now_ms = int(time.time() * 1000)
+                                if is_current:
+                                    tick = self.tick_from_books(
+                                        market_ts=market_ts,
+                                        market_end=market_end,
+                                        up_book=up_book,
+                                        down_book=down_book,
                                         now_ms=now_ms,
                                     )
-                                    next_seen_ms.add(now_ms)
-                                    buffered_next_ticks.append(next_tick)
+                                    await self.process_tick(tick)
+
+                                if is_next and (
+                                    next_up_book["bids"]
+                                    and next_up_book["asks"]
+                                    and next_down_book["bids"]
+                                    and next_down_book["asks"]
+                                ):
+                                    if (
+                                        now_ms
+                                        >= (next_market_ts - ROLLOVER_OVERLAP_SECONDS) * 1000
+                                        and now_ms
+                                        <= (next_market_ts + ROLLOVER_OVERLAP_SECONDS) * 1000
+                                        and now_ms not in next_seen_ms
+                                    ):
+                                        next_tick = self.tick_from_books(
+                                            market_ts=next_market_ts,
+                                            market_end=next_market_end,
+                                            up_book=next_up_book,
+                                            down_book=next_down_book,
+                                            now_ms=now_ms,
+                                        )
+                                        next_seen_ms.add(now_ms)
+                                        buffered_next_ticks.append(next_tick)
             except Exception as exc:
                 log(f"ws error {market_slug}: {exc}")
                 await asyncio.sleep(1)
