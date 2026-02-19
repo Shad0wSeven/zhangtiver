@@ -12,13 +12,13 @@ class AggressiveBreakoutStrategy:
 
     def __init__(self, params: dict | None = None) -> None:
         params = params or {}
-        self.bid_min = float(params.get("bid_min", 0.88))
-        self.strength_min = float(params.get("strength_min", 0.05))
-        self.mom_gap_min = float(params.get("mom_gap_min", 0.01))
-        self.spread_cap = float(params.get("spread_cap", 0.03))
-        self.vol_cap = float(params.get("vol_cap_60s", 0.08))
-        self.late_seconds = int(params.get("late_seconds", 20))
-        self.bet_pct = float(params.get("bet_pct", 0.35))
+        self.bid_min = float(params.get("bid_min", 0.70))
+        self.strength_min = float(params.get("strength_min", 0.01))
+        self.mom_gap_min = float(params.get("mom_gap_min", 0.004))
+        self.spread_cap = float(params.get("spread_cap", 0.04))
+        self.vol_cap = float(params.get("vol_cap_60s", 0.10))
+        self.late_seconds = int(params.get("late_seconds", 40))
+        self.bet_pct = float(params.get("bet_pct", 0.45))
 
         self.last_ts_ms = 0
         self.mids: deque[float] = deque(maxlen=220)
@@ -66,7 +66,7 @@ class AggressiveBreakoutStrategy:
 
         if tick.time_remaining > self.late_seconds:
             return None
-        if len(self.mids) < 40:
+        if len(self.mids) < 25:
             return None
         if self._vol(30) > self.vol_cap:
             return None
@@ -105,6 +105,23 @@ class AggressiveBreakoutStrategy:
                 token="down",
                 size=self.bet_pct,
                 comment=f"AB down gap={mom_gap:.3f}",
+            )
+
+        if tick.time_remaining <= 6 and tick.up_bid >= 0.965:
+            self.entered = True
+            return Action(
+                side="buy",
+                token="up",
+                size=max(self.bet_pct, 0.60),
+                comment="AB hard edge",
+            )
+        if tick.time_remaining <= 6 and tick.down_bid >= 0.965:
+            self.entered = True
+            return Action(
+                side="buy",
+                token="down",
+                size=max(self.bet_pct, 0.60),
+                comment="AB hard edge",
             )
 
         return None

@@ -93,7 +93,7 @@ def get_market_info(timestamp):
     try:
         slug = f"btc-updown-5m-{timestamp}"
         url = f"{API_URL}?slug={slug}"
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, timeout=2.0)
 
         if response.status_code == 200:
             data = response.json()
@@ -210,16 +210,14 @@ def resolve_market_tokens(market_info):
     return None
 
 
-async def log_market(market_ts, seed_entries=None):
-    """Log a single 5-minute market and pre-buffer next-market overlap rows."""
+async def log_market(market_ts):
+    """Log a single 5-minute market."""
     market_slug = f"btc-updown-5m-{market_ts}"
     market_end = market_ts + 300
-    next_market_ts = market_ts + 300
-    next_market_end = next_market_ts + 300
 
     log(f"Starting market: {market_slug}")
 
-    market_info = get_market_info(market_ts)
+    market_info = await asyncio.to_thread(get_market_info, market_ts)
     if not market_info:
         log(f"Market not found: {market_slug}")
         return []
@@ -234,20 +232,9 @@ async def log_market(market_ts, seed_entries=None):
 
     up_orderbook = {"bids": [], "asks": []}
     down_orderbook = {"bids": [], "asks": []}
-    next_up_orderbook = {"bids": [], "asks": []}
-    next_down_orderbook = {"bids": [], "asks": []}
 
     updates_logged = 0
     last_logged_prices = None
-    next_tokens = None
-    next_subscribed = False
-    buffered_next_entries = []
-    next_seen_ms = set()
-
-    if seed_entries:
-        for entry in seed_entries:
-            write_jsonl(entry)
-            updates_logged += 1
 
     try:
         async with aiohttp.ClientSession() as session:
@@ -266,147 +253,100 @@ async def log_market(market_ts, seed_entries=None):
                         log(f"Market ended. Logged {updates_logged} updates")
                         break
 
-                    if not next_subscribed and time_remaining <= 5:
-                        if next_tokens is None:
-                            next_info = get_market_info(next_market_ts)
-                            if next_info:
-                                next_tokens = resolve_market_tokens(next_info)
-                        if next_tokens is not None:
-                            try:
-                                await ws.send_json(
-                                    {
-                                        "assets_ids": [
-                                            next_tokens[0],
-                                            next_tokens[1],
-                                        ],
-                                        "operation": "subscribe",
-                                    }
-                                )
-                                next_subscribed = True
-                                log(
-                                    f"Preloaded overlap for next market: btc-updown-5m-{next_market_ts}"
-                                )
-                            except Exception:
-                                pass
-
                     try:
                         msg = await ws.receive(timeout=1.0)
                     except asyncio.TimeoutError:
                         continue
 
                     if msg.type == aiohttp.WSMsgType.TEXT:
-                        if not msg.data.startswith("{") and not msg.data.startswith("["):
+                        if not msg.data.startswith("{") and not msg.data.startswith(
+                            "["
+                        ):
                             continue
                         try:
-                            data = msg.json()
+                            raw = msg.json()
                         except Exception:
                             continue
-                        if data.get("event_type") != "book":
-                            continue
 
-                        asset_id = data.get("asset_id")
-                        parsed_bids = parse_orderbook_side(
-                            data.get("bids", []),
-                            is_bid=True,
-                            target_volume_usd=ORDERBOOK_DEPTH_USD,
-                        )
-                        parsed_asks = parse_orderbook_side(
-                            data.get("asks", []),
-                            is_bid=False,
-                            target_volume_usd=ORDERBOOK_DEPTH_USD,
-                        )
+                        events = raw if isinstance(raw, list) else [raw]
+                        for data in events:
+                            if not isinstance(data, dict):
+                                continue
+                            if data.get("event_type") != "book":
+                                continue
 
-                        is_current = asset_id in (up_token, down_token)
-                        is_next = (
-                            next_tokens is not None
-                            and asset_id in (next_tokens[0], next_tokens[1])
-                        )
-
-                        if asset_id == up_token:
-                            up_orderbook["bids"] = parsed_bids
-                            up_orderbook["asks"] = parsed_asks
-                        elif asset_id == down_token:
-                            down_orderbook["bids"] = parsed_bids
-                            down_orderbook["asks"] = parsed_asks
-                        elif next_tokens is not None and asset_id == next_tokens[0]:
-                            next_up_orderbook["bids"] = parsed_bids
-                            next_up_orderbook["asks"] = parsed_asks
-                        elif next_tokens is not None and asset_id == next_tokens[1]:
-                            next_down_orderbook["bids"] = parsed_bids
-                            next_down_orderbook["asks"] = parsed_asks
-
-                        now_ms = int(time.time() * 1000)
-                        now = now_ms // 1000
-
-                        if is_current and (
-                            up_orderbook["bids"]
-                            and up_orderbook["asks"]
-                            and down_orderbook["bids"]
-                            and down_orderbook["asks"]
-                        ):
-                            current_prices = build_price_snapshot(
-                                up_orderbook, down_orderbook
+                            asset_id = data.get("asset_id")
+                            parsed_bids = parse_orderbook_side(
+                                data.get("bids", []),
+                                is_bid=True,
+                                target_volume_usd=ORDERBOOK_DEPTH_USD,
                             )
-                            if CONDENSED_MODE and not meaningful_price_change(
-                                current_prices, last_logged_prices, MIN_PRICE_MOVE
-                            ):
-                                pass
+                            parsed_asks = parse_orderbook_side(
+                                data.get("asks", []),
+                                is_bid=False,
+                                target_volume_usd=ORDERBOOK_DEPTH_USD,
+                            )
+
+                            if asset_id == up_token:
+                                up_orderbook["bids"] = parsed_bids
+                                up_orderbook["asks"] = parsed_asks
+                            elif asset_id == down_token:
+                                down_orderbook["bids"] = parsed_bids
+                                down_orderbook["asks"] = parsed_asks
                             else:
-                                log_entry = {
-                                    "timestamp": now,
-                                    "timestamp_ms": now_ms,
-                                    "market": market_slug,
-                                    "up_bids": up_orderbook["bids"],
-                                    "up_asks": up_orderbook["asks"],
-                                    "down_bids": down_orderbook["bids"],
-                                    "down_asks": down_orderbook["asks"],
-                                    "time_remaining": max(0, market_end - now),
-                                }
-                                write_jsonl(log_entry)
-                                updates_logged += 1
-                                last_logged_prices = current_prices
+                                continue
 
-                                if updates_logged % 10 == 0:
-                                    up_bid_depth = sum(p * s for p, s in up_orderbook["bids"])
-                                    up_ask_depth = sum(p * s for p, s in up_orderbook["asks"])
-                                    down_bid_depth = sum(
-                                        p * s for p, s in down_orderbook["bids"]
-                                    )
-                                    down_ask_depth = sum(
-                                        p * s for p, s in down_orderbook["asks"]
-                                    )
-                                    print(
-                                        f"\r  Updates: {updates_logged} | Time: {max(0, market_end - now)}s | "
-                                        f"Up: ${up_bid_depth:.0f}/${up_ask_depth:.0f} | "
-                                        f"Down: ${down_bid_depth:.0f}/${down_ask_depth:.0f}",
-                                        end="",
-                                        flush=True,
-                                    )
+                            now_ms = int(time.time() * 1000)
+                            now = now_ms // 1000
 
-                        if is_next and (
-                            next_up_orderbook["bids"]
-                            and next_up_orderbook["asks"]
-                            and next_down_orderbook["bids"]
-                            and next_down_orderbook["asks"]
-                        ):
                             if (
-                                now_ms >= (next_market_ts - 5) * 1000
-                                and now_ms <= (next_market_ts + 5) * 1000
-                                and now_ms not in next_seen_ms
+                                up_orderbook["bids"]
+                                and up_orderbook["asks"]
+                                and down_orderbook["bids"]
+                                and down_orderbook["asks"]
                             ):
-                                next_seen_ms.add(now_ms)
-                                buffered_next_entries.append(
-                                    {
+                                current_prices = build_price_snapshot(
+                                    up_orderbook, down_orderbook
+                                )
+                                if CONDENSED_MODE and not meaningful_price_change(
+                                    current_prices, last_logged_prices, MIN_PRICE_MOVE
+                                ):
+                                    pass
+                                else:
+                                    log_entry = {
                                         "timestamp": now,
                                         "timestamp_ms": now_ms,
-                                        "market": f"btc-updown-5m-{next_market_ts}",
-                                        "up_bids": next_up_orderbook["bids"],
-                                        "up_asks": next_up_orderbook["asks"],
-                                        "down_bids": next_down_orderbook["bids"],
-                                        "down_asks": next_down_orderbook["asks"],
-                                        "time_remaining": max(0, next_market_end - now),
+                                        "market": market_slug,
+                                        "up_bids": up_orderbook["bids"],
+                                        "up_asks": up_orderbook["asks"],
+                                        "down_bids": down_orderbook["bids"],
+                                        "down_asks": down_orderbook["asks"],
+                                        "time_remaining": max(0, market_end - now),
                                     }
-                                )
+                                    write_jsonl(log_entry)
+                                    updates_logged += 1
+                                    last_logged_prices = current_prices
+
+                                    if updates_logged % 10 == 0:
+                                        up_bid_depth = sum(
+                                            p * s for p, s in up_orderbook["bids"]
+                                        )
+                                        up_ask_depth = sum(
+                                            p * s for p, s in up_orderbook["asks"]
+                                        )
+                                        down_bid_depth = sum(
+                                            p * s for p, s in down_orderbook["bids"]
+                                        )
+                                        down_ask_depth = sum(
+                                            p * s for p, s in down_orderbook["asks"]
+                                        )
+                                        print(
+                                            f"\r  Updates: {updates_logged} | Time: {max(0, market_end - now)}s | "
+                                            f"Up: ${up_bid_depth:.0f}/${up_ask_depth:.0f} | "
+                                            f"Down: ${down_bid_depth:.0f}/${down_ask_depth:.0f}",
+                                            end="",
+                                            flush=True,
+                                        )
 
                     elif msg.type == aiohttp.WSMsgType.ERROR:
                         log("WebSocket error")
@@ -417,13 +357,7 @@ async def log_market(market_ts, seed_entries=None):
         import traceback
 
         traceback.print_exc()
-        return []
-
-    buffered_next_entries = [
-        row for row in buffered_next_entries if row["timestamp"] >= next_market_ts
-    ]
-    buffered_next_entries.sort(key=lambda x: x["timestamp_ms"])
-    return buffered_next_entries
+        return
 
 
 async def main():
@@ -439,7 +373,6 @@ async def main():
     log("")
 
     current_market_ts = None
-    seed_by_market = {}
 
     while True:
         try:
@@ -451,10 +384,7 @@ async def main():
                 current_market_ts = market_ts
 
                 # Log this market
-                seed_entries = seed_by_market.pop(market_ts, None)
-                next_seed = await log_market(market_ts, seed_entries=seed_entries)
-                if next_seed:
-                    seed_by_market[market_ts + 300] = next_seed
+                await log_market(market_ts)
                 await asyncio.sleep(0.05)
             else:
                 # Still in same market, wait

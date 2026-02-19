@@ -1,0 +1,16 @@
+{
+  "params": {
+    "entry_sum_max": [0.94, 0.95, 0.96],
+    "exit_sum_min": [0.98, 0.985, 0.99],
+    "stop_sum_max": [0.90, 0.915, 0.93],
+    "max_spread_sum": [0.04, 0.06, 0.08],
+    "max_mid_imbalance": [0.22, 0.30, 0.38],
+    "per_leg_usd": [16.0, 24.0, 36.0],
+    "max_hold_s": [8, 14, 22],
+    "cooldown_s": [1, 2, 3],
+    "window_low_s": [5, 8],
+    "window_high_s": [80, 110],
+    "recent_sum_n": [8, 12],
+    "entry_z_min": [0.6, 0.8, 1.1]
+  }
+}
