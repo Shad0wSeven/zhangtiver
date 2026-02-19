@@ -1,0 +1,16 @@
+{
+  "params": {
+    "short_n": [8, 10, 12],
+    "long_n": [28, 36, 44],
+    "trend_gap_min": [0.008, 0.012, 0.016],
+    "pullback_min": [0.004, 0.006, 0.008],
+    "bid_strength_min": [0.02, 0.03, 0.05],
+    "spread_cap": [0.015, 0.02, 0.025],
+    "entry_price_cap": [0.94, 0.96, 0.98],
+    "vol_cap_60s": [0.03, 0.04],
+    "flip_rate_cap_60s": [0.22, 0.3],
+    "early_pct": [0.2, 0.25],
+    "late_pct": [0.3, 0.4],
+    "late_seconds": [8, 10, 12]
+  }
+}
