@@ -18,25 +18,27 @@ class ActivePairLadderStrategy:
 
     def __init__(self, params: dict | None = None) -> None:
         params = params or {}
-        self.entry_1 = float(params.get("entry_1", 0.955))
-        self.entry_2 = float(params.get("entry_2", 0.935))
-        self.entry_3 = float(params.get("entry_3", 0.915))
-        self.exit_1 = float(params.get("exit_1", 0.975))
-        self.exit_2 = float(params.get("exit_2", 0.985))
-        self.stop_sum = float(params.get("stop_sum", 0.87))
-        self.max_spread_sum = float(params.get("max_spread_sum", 0.10))
-        self.max_mid_imbalance = float(params.get("max_mid_imbalance", 0.36))
+        self.entry_1 = float(params.get("entry_1", 0.992))
+        self.entry_2 = float(params.get("entry_2", 0.986))
+        self.entry_3 = float(params.get("entry_3", 0.980))
+        self.exit_1 = float(params.get("exit_1", 0.998))
+        self.exit_2 = float(params.get("exit_2", 1.003))
+        self.stop_sum = float(params.get("stop_sum", 0.972))
+        self.max_spread_sum = float(params.get("max_spread_sum", 0.06))
+        self.max_mid_imbalance = float(params.get("max_mid_imbalance", 0.22))
+        self.jump_cap = float(params.get("jump_cap", 0.02))
 
-        self.per_leg_usd = float(params.get("per_leg_usd", 24.0))
-        self.max_hold_s = int(params.get("max_hold_s", 16))
+        self.per_leg_usd = float(params.get("per_leg_usd", 20.0))
+        self.max_hold_s = int(params.get("max_hold_s", 20))
         self.cooldown_s = int(params.get("cooldown_s", 1))
         self.window_low_s = int(params.get("window_low_s", 5))
-        self.window_high_s = int(params.get("window_high_s", 125))
+        self.window_high_s = int(params.get("window_high_s", 150))
 
         self.entry_ts = 0
         self.last_exit_ts = -10_000
         self.tiers_open = 0
         self.scaled_1 = False
+        self.last_up_mid = 0.0
 
     def on_market_start(self, market_ts: int) -> None:
         _ = market_ts
@@ -44,6 +46,7 @@ class ActivePairLadderStrategy:
         self.last_exit_ts = -10_000
         self.tiers_open = 0
         self.scaled_1 = False
+        self.last_up_mid = 0.0
 
     def _can_trade_window(self, t: int) -> bool:
         return self.window_low_s <= t <= self.window_high_s
@@ -58,6 +61,12 @@ class ActivePairLadderStrategy:
         sum_mid = tick.up_mid + tick.down_mid
         spread_sum = (tick.up_ask - tick.up_bid) + (tick.down_ask - tick.down_bid)
         mid_imbalance = abs(tick.up_mid - tick.down_mid)
+        if self.last_up_mid > 0:
+            jump = abs((tick.up_mid - self.last_up_mid) / self.last_up_mid)
+            if jump > self.jump_cap:
+                self.last_up_mid = tick.up_mid
+                return None
+        self.last_up_mid = tick.up_mid
         if spread_sum > self.max_spread_sum or mid_imbalance > self.max_mid_imbalance:
             return None
 

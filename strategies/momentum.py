@@ -21,13 +21,14 @@ class LateDominanceStrategy:
         params = params or {}
         self.bid_min = float(params.get("bid_min", 0.75))
         self.strength_min = float(params.get("strength_min", 0.01))
-        self.spread_max = float(params.get("spread_max", 0.03))
+        self.spread_max = float(params.get("spread_max", 0.025))
         self.early_pct = float(params.get("early_pct", 0.25))
         self.late_pct = float(params.get("late_pct", 0.45))
         self.late_seconds = int(params.get("late_seconds", 20))
 
-        self.vol_cap = float(params.get("vol_cap_60s", 0.07))
-        self.flip_rate_cap = float(params.get("flip_rate_cap_60s", 0.35))
+        self.vol_cap = float(params.get("vol_cap_60s", 0.045))
+        self.flip_rate_cap = float(params.get("flip_rate_cap_60s", 0.28))
+        self.jump_cap = float(params.get("jump_cap", 0.02))
         self.momentum_gap_min = float(params.get("momentum_gap_min", 0.004))
         self.accel_min = float(params.get("accel_min", 0.0002))
         self.min_points = int(params.get("min_points", 12))
@@ -118,6 +119,8 @@ class LateDominanceStrategy:
         if tick is None:
             return None
         self.update_series(tick)
+        if self.rets and abs(self.rets[-1]) > self.jump_cap:
+            return None
 
         in_window = tick.time_remaining <= self.late_seconds or (
             20 <= tick.time_remaining <= 50
@@ -138,21 +141,6 @@ class LateDominanceStrategy:
         size = (
             self.early_pct if tick.time_remaining > self.late_seconds else self.late_pct
         )
-
-        # Late hard-dominance fallback when one side is already near-certain.
-        if tick.time_remaining <= 8 and tick.up_bid >= 0.965 and up_spread <= 0.03:
-            self.entered = True
-            return Action(
-                side="buy", token="up", size=max(size, 0.60), comment="DomUP hard edge"
-            )
-        if tick.time_remaining <= 8 and tick.down_bid >= 0.965 and down_spread <= 0.03:
-            self.entered = True
-            return Action(
-                side="buy",
-                token="down",
-                size=max(size, 0.60),
-                comment="DomDOWN hard edge",
-            )
 
         if (
             gap > 0

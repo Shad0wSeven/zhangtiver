@@ -1,0 +1,64 @@
+{
+  "notes": "Reversal-mitigated params from Feb 19, 2026 sweep on btc_5m_prices-archive.jsonl + btc_5m_prices.jsonl",
+  "engine": {
+    "complete_end_threshold_s": 10,
+    "default_bet_usd": 10.0,
+    "settlement_win_price": 0.99
+  },
+  "strategies": {
+    "strategies/mean_reversion.py": {
+      "label": "trend_pullback_tuned",
+      "params": {
+        "bid_strength_min": 0.05,
+        "early_pct": 0.2,
+        "entry_price_cap": 0.96,
+        "flip_rate_cap_60s": 0.3,
+        "late_pct": 0.4,
+        "late_seconds": 8,
+        "long_n": 44,
+        "pullback_min": 0.004,
+        "short_n": 8,
+        "spread_cap": 0.015,
+        "trend_gap_min": 0.012,
+        "vol_cap_60s": 0.04
+      }
+    },
+    "strategies/momentum.py": {
+      "label": "late_dominance_tuned_lite",
+      "params": {
+        "accel_min": 0.003,
+        "bid_min": 0.94,
+        "early_pct": 0.2,
+        "flip_rate_cap_60s": 0.3,
+        "late_pct": 0.4,
+        "late_seconds": 12,
+        "momentum_gap_min": 0.01,
+        "spread_max": 0.015,
+        "strength_min": 0.08,
+        "vol_cap_60s": 0.04
+      }
+    },
+    "strategies/aggressive_breakout.py": {
+      "label": "aggressive_breakout_tuned_balanced",
+      "params": {
+        "bet_pct": 0.45,
+        "bid_min": 0.88,
+        "late_seconds": 20,
+        "mom_gap_min": 0.01,
+        "spread_cap": 0.03,
+        "strength_min": 0.08,
+        "vol_cap_60s": 0.05
+      },
+      "alt_params": {
+        "label": "aggressive_breakout_tuned_maxpnl",
+        "bet_pct": 0.55,
+        "bid_min": 0.84,
+        "late_seconds": 20,
+        "mom_gap_min": 0.01,
+        "spread_cap": 0.04,
+        "strength_min": 0.08,
+        "vol_cap_60s": 0.06
+      }
+    }
+  }
+}
