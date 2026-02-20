@@ -1,0 +1,13 @@
+{
+  "params": {
+    "window_low_s": [4, 6, 8],
+    "window_high_s": [35, 45, 55],
+    "flip_lookback": [10, 14, 18],
+    "confirm_ticks": [2, 3],
+    "entry_gap_min": [0.01, 0.015, 0.02],
+    "entry_bid_min": [0.58, 0.62, 0.68],
+    "spread_cap": [0.02, 0.03, 0.04],
+    "jump_cap": [0.02, 0.03, 0.04],
+    "bet_pct": [0.18, 0.24, 0.30]
+  }
+}

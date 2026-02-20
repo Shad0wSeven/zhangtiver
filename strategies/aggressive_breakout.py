@@ -12,13 +12,14 @@ class AggressiveBreakoutStrategy:
 
     def __init__(self, params: dict | None = None) -> None:
         params = params or {}
-        self.bid_min = float(params.get("bid_min", 0.70))
-        self.strength_min = float(params.get("strength_min", 0.01))
-        self.mom_gap_min = float(params.get("mom_gap_min", 0.004))
-        self.spread_cap = float(params.get("spread_cap", 0.04))
-        self.vol_cap = float(params.get("vol_cap_60s", 0.10))
-        self.late_seconds = int(params.get("late_seconds", 40))
-        self.bet_pct = float(params.get("bet_pct", 0.45))
+        self.bid_min = float(params.get("bid_min", 0.78))
+        self.strength_min = float(params.get("strength_min", 0.02))
+        self.mom_gap_min = float(params.get("mom_gap_min", 0.006))
+        self.spread_cap = float(params.get("spread_cap", 0.025))
+        self.vol_cap = float(params.get("vol_cap_60s", 0.05))
+        self.jump_cap = float(params.get("jump_cap", 0.025))
+        self.late_seconds = int(params.get("late_seconds", 30))
+        self.bet_pct = float(params.get("bet_pct", 0.30))
 
         self.last_ts_ms = 0
         self.mids: deque[float] = deque(maxlen=220)
@@ -70,6 +71,8 @@ class AggressiveBreakoutStrategy:
             return None
         if self._vol(30) > self.vol_cap:
             return None
+        if self.rets and abs(self.rets[-1]) > self.jump_cap:
+            return None
 
         short = self._avg(8)
         long = self._avg(30)
@@ -105,23 +108,6 @@ class AggressiveBreakoutStrategy:
                 token="down",
                 size=self.bet_pct,
                 comment=f"AB down gap={mom_gap:.3f}",
-            )
-
-        if tick.time_remaining <= 6 and tick.up_bid >= 0.965:
-            self.entered = True
-            return Action(
-                side="buy",
-                token="up",
-                size=max(self.bet_pct, 0.60),
-                comment="AB hard edge",
-            )
-        if tick.time_remaining <= 6 and tick.down_bid >= 0.965:
-            self.entered = True
-            return Action(
-                side="buy",
-                token="down",
-                size=max(self.bet_pct, 0.60),
-                comment="AB hard edge",
             )
 
         return None

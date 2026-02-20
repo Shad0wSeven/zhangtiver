@@ -66,3 +66,32 @@ python3 -m backtester.cli tune \
   --grid-file backtester/grids/active_pair_ladder_fast.json \
   --end-threshold-s 40 --max-combos 220 --progress-every 40 --top-k 8
 ```
+
+### Chainlink BTC/USD Feed (for strategy pull)
+
+Run a local feeder that polls Chainlink on Arbitrum and publishes:
+- snapshot file: `/tmp/chainlink_btcusd.json`
+- local HTTP: `http://127.0.0.1:8765/latest`
+
+```bash
+python3 scripts/chainlink_btcusd_feed.py --poll-ms 250
+```
+
+If logs look "slow", note:
+- Chainlink `updated_at` changes only when oracle rounds update (often 10-20s+ depending on deviation/heartbeat).
+- The feeder can still poll faster; use `--log-every-poll` to confirm fetch cadence.
+
+```bash
+python3 scripts/chainlink_btcusd_feed.py --poll-ms 150 --log-every-poll
+```
+
+Override RPC/feed if needed:
+
+```bash
+CHAINLINK_RPC_HTTP="https://arb1.arbitrum.io/rpc" \
+CHAINLINK_FEED_ADDRESS="0x6ce185860a4963106506C203335A2910413708e9" \
+python3 scripts/chainlink_btcusd_feed.py --poll-ms 150
+```
+
+From strategies, read cached snapshots via:
+- `livetrader/chainlink_client.py` (`ChainlinkSnapshotReader`)

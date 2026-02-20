@@ -25,11 +25,12 @@ class TrendPullbackStrategy:
         self.pullback_min = float(params.get("pullback_min", 0.002))
 
         self.bid_strength_min = float(params.get("bid_strength_min", 0.01))
-        self.spread_cap = float(params.get("spread_cap", 0.03))
+        self.spread_cap = float(params.get("spread_cap", 0.025))
         self.entry_price_cap = float(params.get("entry_price_cap", 0.97))
 
-        self.vol_cap_60s = float(params.get("vol_cap_60s", 0.07))
-        self.flip_rate_cap_60s = float(params.get("flip_rate_cap_60s", 0.35))
+        self.vol_cap_60s = float(params.get("vol_cap_60s", 0.045))
+        self.flip_rate_cap_60s = float(params.get("flip_rate_cap_60s", 0.28))
+        self.jump_cap = float(params.get("jump_cap", 0.02))
         self.min_points = int(params.get("min_points", 12))
 
         self.early_pct = float(params.get("early_pct", 0.25))
@@ -107,6 +108,8 @@ class TrendPullbackStrategy:
         if tick is None:
             return None
         self.update_series(tick)
+        if self.rets and abs(self.rets[-1]) > self.jump_cap:
+            return None
 
         in_window = tick.time_remaining <= self.late_seconds or (
             20 <= tick.time_remaining <= 50
@@ -126,17 +129,6 @@ class TrendPullbackStrategy:
         size = (
             self.early_pct if tick.time_remaining > self.late_seconds else self.late_pct
         )
-
-        if tick.time_remaining <= 7 and tick.up_bid >= 0.97 and up_spread <= 0.03:
-            self.entered = True
-            return Action(
-                side="buy", token="up", size=max(size, 0.60), comment="TP hard edge"
-            )
-        if tick.time_remaining <= 7 and tick.down_bid >= 0.97 and down_spread <= 0.03:
-            self.entered = True
-            return Action(
-                side="buy", token="down", size=max(size, 0.60), comment="TP hard edge"
-            )
 
         if (
             trend_gap >= self.trend_gap_min
