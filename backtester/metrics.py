@@ -17,6 +17,7 @@ def summarize(result: dict[str, Any]) -> dict[str, Any]:
             "markets": 0,
             "total_pnl": 0.0,
             "avg_pnl": 0.0,
+            "median_pnl": 0.0,
             "win_rate": 0.0,
             "trade_count": 0,
             "avg_trades_per_market": 0.0,

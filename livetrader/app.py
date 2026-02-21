@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import json
 import time
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 import aiohttp
@@ -26,7 +28,7 @@ TICK_QUEUE_MAX = 4000
 UI_EVENT_QUEUE_MAX = 4000
 UI_STATE_INTERVAL_S = 1.0
 TICK_COALESCE_BACKLOG = 25
-WINDOW_START_CASH = 1000.0
+WINDOW_START_CASH = 100.0
 DEFAULT_BET_USD = 10.0
 
 
@@ -211,6 +213,16 @@ INDEX_HTML = """<!doctype html>
     .sold-down { color: var(--down); }
     .pos { color: #7ee787; }
     .neg { color: #ff7b72; }
+    .opti-overlay {
+      position: fixed;
+      right: 10px;
+      bottom: 10px;
+      width: min(660px, 96vw);
+      opacity: 0.75;
+      pointer-events: none;
+      z-index: 1000;
+      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
+    }
   </style>
 </head>
 <body>
@@ -240,6 +252,7 @@ INDEX_HTML = """<!doctype html>
       <div id="stream"></div>
     </section>
   </div>
+  <img class="opti-overlay" src="__OPTI_SRC__" alt="opti" onerror="this.onerror=null;this.src='/opti.png';" />
   <script>
     const cardsEl = document.getElementById("cards");
     const streamEl = document.getElementById("stream");
@@ -279,10 +292,13 @@ Current Window: <span class="${cls(s.current_window_pnl)}">$${fmt(s.current_wind
 Unrealized: <span class="${cls(s.unrealized_pnl)}">$${fmt(s.unrealized_pnl, 2)}</span>
 Cash: $${fmt(s.cash, 2)}
 Window Buy Flow: $${fmt(s.window_buy_notional, 2)} | Sell Flow: $${fmt(s.window_sell_notional, 2)}
-Window Capital Used: ${fmt(s.window_deployed_pct, 1)}% of $1000
+Window Capital Used: ${fmt(s.window_deployed_pct, 1)}% of $${fmt(s.window_start_cash, 0)}
 Open UP: ${fmt(s.position_up, 2)} (avg $${fmt(s.avg_up_value, 4)}, value $${fmt(s.open_up_value, 2)})
 Open DOWN: ${fmt(s.position_down, 2)} (avg $${fmt(s.avg_down_value, 4)}, value $${fmt(s.open_down_value, 2)})
 Buys: ${s.buys} | Sells: ${s.sells} | Win sells: ${s.win_sells} | Loss sells: ${s.loss_sells}
+Avg Profit/Trade: <span class="${cls(s.avg_profit_per_trade)}">$${fmt(s.avg_profit_per_trade, 4)}</span>
+Avg Entry (all/win/loss): $${fmt(s.avg_entry_price, 4)} / $${fmt(s.avg_win_entry_price, 4)} / $${fmt(s.avg_loss_entry_price, 4)}
+Avg Profit/Session: <span class="${cls(s.avg_profit_per_session)}">$${fmt(s.avg_profit_per_session, 4)}</span> (${s.closed_windows} closed)
 Comment: ${s.last_comment || "-"}
           </div>`;
         cardsEl.appendChild(div);
@@ -608,6 +624,14 @@ class StrategyState:
     window_sell_notional: float = 0.0
     last_comment: str = ""
     market_start_mtm: float = WINDOW_START_CASH
+    sell_realized_pnl_sum: float = 0.0
+    entry_price_sum: float = 0.0
+    entry_price_count: int = 0
+    win_entry_price_sum: float = 0.0
+    win_entry_price_count: int = 0
+    loss_entry_price_sum: float = 0.0
+    loss_entry_price_count: int = 0
+    closed_windows: int = 0
 
     @property
     def name(self) -> str:
@@ -621,6 +645,7 @@ class StrategyState:
 class LiveTraderServer:
     def __init__(self, strategy_dir: str):
         self.strategy_dir = strategy_dir
+        self.opti_src = self._load_opti_src()
         self.history: deque[Tick] = deque(maxlen=MAX_HISTORY)
         self.stream: deque[dict[str, Any]] = deque(maxlen=MAX_STREAM_ROWS)
         self.trade_history: deque[dict[str, Any]] = deque(maxlen=MAX_TRADE_HISTORY_ROWS)
@@ -641,6 +666,15 @@ class LiveTraderServer:
         self.dropped_ticks = 0
         self.dropped_ui_events = 0
         self.coalesced_ticks = 0
+
+    @staticmethod
+    def _load_opti_src() -> str:
+        path = Path(__file__).with_name("opti.png")
+        try:
+            payload = base64.b64encode(path.read_bytes()).decode("ascii")
+            return f"data:image/png;base64,{payload}"
+        except Exception:
+            return "/opti.png"
 
     def state_mtm(self, state: StrategyState) -> float:
         up_px = self.latest_tick.up_mid if self.latest_tick else 0.0
@@ -748,6 +782,29 @@ class LiveTraderServer:
                 if WINDOW_START_CASH > 0
                 else 0.0
             )
+            avg_profit_per_trade = (
+                state.sell_realized_pnl_sum / state.sells if state.sells > 0 else 0.0
+            )
+            avg_entry_price = (
+                state.entry_price_sum / state.entry_price_count
+                if state.entry_price_count > 0
+                else 0.0
+            )
+            avg_win_entry_price = (
+                state.win_entry_price_sum / state.win_entry_price_count
+                if state.win_entry_price_count > 0
+                else 0.0
+            )
+            avg_loss_entry_price = (
+                state.loss_entry_price_sum / state.loss_entry_price_count
+                if state.loss_entry_price_count > 0
+                else 0.0
+            )
+            avg_profit_per_session = (
+                state.session_profit_closed_windows / state.closed_windows
+                if state.closed_windows > 0
+                else 0.0
+            )
             items.append(
                 {
                     "name": state.name,
@@ -771,6 +828,13 @@ class LiveTraderServer:
                     "window_buy_notional": state.window_buy_notional,
                     "window_sell_notional": state.window_sell_notional,
                     "window_deployed_pct": deployed_pct,
+                    "window_start_cash": WINDOW_START_CASH,
+                    "avg_profit_per_trade": avg_profit_per_trade,
+                    "avg_entry_price": avg_entry_price,
+                    "avg_win_entry_price": avg_win_entry_price,
+                    "avg_loss_entry_price": avg_loss_entry_price,
+                    "avg_profit_per_session": avg_profit_per_session,
+                    "closed_windows": state.closed_windows,
                     "last_comment": state.last_comment,
                 }
             )
@@ -894,7 +958,11 @@ class LiveTraderServer:
         self.worker_tasks = []
 
     async def handle_index(self, _: web.Request) -> web.Response:
-        return web.Response(text=INDEX_HTML, content_type="text/html")
+        html = INDEX_HTML.replace("__OPTI_SRC__", self.opti_src)
+        return web.Response(text=html, content_type="text/html")
+
+    async def handle_opti(self, _: web.Request) -> web.Response:
+        return web.FileResponse(Path(__file__).with_name("opti.png"))
 
     async def handle_ws(self, request: web.Request) -> web.StreamResponse:
         ws = web.WebSocketResponse(heartbeat=20)
@@ -1043,7 +1111,8 @@ class LiveTraderServer:
             if size == 1.0:
                 notional = DEFAULT_BET_USD
             elif 0 < size < 1:
-                notional = state.cash * size
+                # Keep fractional sizing anchored to start cash so profits do not compound.
+                notional = WINDOW_START_CASH * size
             else:
                 notional = size
             notional = min(notional, state.cash)
@@ -1079,11 +1148,18 @@ class LiveTraderServer:
             state.sells += 1
             state.realized_pnl += realized
             state.session_realized_pnl += realized
+            state.sell_realized_pnl_sum += realized
             state.window_sell_notional += notional
+            state.entry_price_sum += avg_cost
+            state.entry_price_count += 1
             if realized >= 0:
                 state.win_sells += 1
+                state.win_entry_price_sum += avg_cost
+                state.win_entry_price_count += 1
             else:
                 state.loss_sells += 1
+                state.loss_entry_price_sum += avg_cost
+                state.loss_entry_price_count += 1
             size = qty
 
         if action.comment:
@@ -1342,6 +1418,7 @@ class LiveTraderServer:
 
     async def market_loop(self) -> None:
         while True:
+            prev_market_ts = self.current_market_ts
             market_ts = get_current_market_timestamp()
             self.current_market_ts = market_ts
             self.latest_tick = None
@@ -1349,7 +1426,11 @@ class LiveTraderServer:
             for state in self.states:
                 # Close prior window accounting, then restart each strategy with fresh
                 # per-window bankroll.
-                state.session_profit_closed_windows += state.cash - WINDOW_START_CASH
+                if prev_market_ts is not None:
+                    state.session_profit_closed_windows += (
+                        state.cash - WINDOW_START_CASH
+                    )
+                    state.closed_windows += 1
                 state.cash = WINDOW_START_CASH
                 state.positions = {"up": 0.0, "down": 0.0}
                 state.costs = {"up": 0.0, "down": 0.0}
@@ -1393,6 +1474,7 @@ async def start_server(
 
     app = web.Application()
     app.router.add_get("/", trader.handle_index)
+    app.router.add_get("/opti.png", trader.handle_opti)
     app.router.add_get("/ws", trader.handle_ws)
 
     async def on_startup(_: web.Application) -> None:

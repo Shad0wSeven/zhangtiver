@@ -1,0 +1,644 @@
+{
+  "candidates": [
+    {
+      "hp": {
+        "epochs": 700,
+        "lr": 0.08,
+        "l2": 0.003
+      },
+      "folds": [
+        {
+          "fold": 1,
+          "threshold": 0.99,
+          "calib": {
+            "trades": 2.0,
+            "win_rate": 0.5,
+            "avg_pnl_per_trade": -0.49230769230769234,
+            "total_pnl": -0.9846153846153847,
+            "avg_pnl_per_market": -0.3282051282051282
+          },
+          "val": {
+            "trades": 9.0,
+            "win_rate": 0.8888888888888888,
+            "avg_pnl_per_trade": -0.024519220877130123,
+            "total_pnl": -0.2206729878941711,
+            "avg_pnl_per_market": -0.01838941565784759
+          }
+        },
+        {
+          "fold": 2,
+          "threshold": 0.91,
+          "calib": {
+            "trades": 3.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.06843562385292563,
+            "total_pnl": 0.20530687155877692,
+            "avg_pnl_per_market": 0.04106137431175538
+          },
+          "val": {
+            "trades": 10.0,
+            "win_rate": 0.7,
+            "avg_pnl_per_trade": -0.1986836469337992,
+            "total_pnl": -1.9868364693379919,
+            "avg_pnl_per_market": -0.165569705778166
+          }
+        },
+        {
+          "fold": 3,
+          "threshold": 0.97,
+          "calib": {
+            "trades": 4.0,
+            "win_rate": 0.75,
+            "avg_pnl_per_trade": -0.223635463800905,
+            "total_pnl": -0.89454185520362,
+            "avg_pnl_per_market": -0.1118177319004525
+          },
+          "val": {
+            "trades": 10.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.0333628463408272,
+            "total_pnl": 0.333628463408272,
+            "avg_pnl_per_market": 0.027802371950689336
+          }
+        },
+        {
+          "fold": 4,
+          "threshold": 0.5,
+          "calib": {
+            "trades": 10.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.11571260110583619,
+            "total_pnl": 1.1571260110583619,
+            "avg_pnl_per_market": 0.11571260110583619
+          },
+          "val": {
+            "trades": 12.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.12679199122687476,
+            "total_pnl": 1.5215038947224973,
+            "avg_pnl_per_market": 0.12679199122687476
+          }
+        },
+        {
+          "fold": 5,
+          "threshold": 0.5,
+          "calib": {
+            "trades": 12.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.11885099901948852,
+            "total_pnl": 1.4262119882338622,
+            "avg_pnl_per_market": 0.11885099901948852
+          },
+          "val": {
+            "trades": 12.0,
+            "win_rate": 0.9166666666666666,
+            "avg_pnl_per_trade": 0.052969779095618175,
+            "total_pnl": 0.6356373491474181,
+            "avg_pnl_per_market": 0.052969779095618175
+          }
+        }
+      ],
+      "median_val_precision": 0.9166666666666666,
+      "min_val_precision": 0.7,
+      "median_val_trades": 10.0,
+      "median_val_avg_market": 0.027802371950689336,
+      "score": 1.2244469038617356
+    },
+    {
+      "hp": {
+        "epochs": 900,
+        "lr": 0.08,
+        "l2": 0.01
+      },
+      "folds": [
+        {
+          "fold": 1,
+          "threshold": 0.99,
+          "calib": {
+            "trades": 2.0,
+            "win_rate": 0.5,
+            "avg_pnl_per_trade": -0.49230769230769234,
+            "total_pnl": -0.9846153846153847,
+            "avg_pnl_per_market": -0.3282051282051282
+          },
+          "val": {
+            "trades": 9.0,
+            "win_rate": 0.8888888888888888,
+            "avg_pnl_per_trade": -0.024519220877130123,
+            "total_pnl": -0.2206729878941711,
+            "avg_pnl_per_market": -0.01838941565784759
+          }
+        },
+        {
+          "fold": 2,
+          "threshold": 0.9,
+          "calib": {
+            "trades": 3.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.06843562385292563,
+            "total_pnl": 0.20530687155877692,
+            "avg_pnl_per_market": 0.04106137431175538
+          },
+          "val": {
+            "trades": 10.0,
+            "win_rate": 0.7,
+            "avg_pnl_per_trade": -0.1986836469337992,
+            "total_pnl": -1.9868364693379919,
+            "avg_pnl_per_market": -0.165569705778166
+          }
+        },
+        {
+          "fold": 3,
+          "threshold": 0.97,
+          "calib": {
+            "trades": 4.0,
+            "win_rate": 0.75,
+            "avg_pnl_per_trade": -0.223635463800905,
+            "total_pnl": -0.89454185520362,
+            "avg_pnl_per_market": -0.1118177319004525
+          },
+          "val": {
+            "trades": 9.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.03177882397658051,
+            "total_pnl": 0.28600941578922456,
+            "avg_pnl_per_market": 0.02383411798243538
+          }
+        },
+        {
+          "fold": 4,
+          "threshold": 0.5,
+          "calib": {
+            "trades": 10.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.11965637529204151,
+            "total_pnl": 1.1965637529204152,
+            "avg_pnl_per_market": 0.11965637529204151
+          },
+          "val": {
+            "trades": 12.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.12163831806345647,
+            "total_pnl": 1.4596598167614776,
+            "avg_pnl_per_market": 0.12163831806345647
+          }
+        },
+        {
+          "fold": 5,
+          "threshold": 0.5,
+          "calib": {
+            "trades": 12.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.11885099901948852,
+            "total_pnl": 1.4262119882338622,
+            "avg_pnl_per_market": 0.11885099901948852
+          },
+          "val": {
+            "trades": 12.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.16152241067456555,
+            "total_pnl": 1.9382689280947865,
+            "avg_pnl_per_market": 0.16152241067456555
+          }
+        }
+      ],
+      "median_val_precision": 1.0,
+      "min_val_precision": 0.7,
+      "median_val_trades": 10.0,
+      "median_val_avg_market": 0.02383411798243538,
+      "score": 1.3073834117982435
+    },
+    {
+      "hp": {
+        "epochs": 1200,
+        "lr": 0.06,
+        "l2": 0.02
+      },
+      "folds": [
+        {
+          "fold": 1,
+          "threshold": 0.5,
+          "calib": {
+            "trades": 3.0,
+            "win_rate": 0.6666666666666666,
+            "avg_pnl_per_trade": -0.28003557136505114,
+            "total_pnl": -0.8401067140951535,
+            "avg_pnl_per_market": -0.28003557136505114
+          },
+          "val": {
+            "trades": 12.0,
+            "win_rate": 0.9166666666666666,
+            "avg_pnl_per_trade": 0.019641683303046425,
+            "total_pnl": 0.23570019963655708,
+            "avg_pnl_per_market": 0.019641683303046425
+          }
+        },
+        {
+          "fold": 2,
+          "threshold": 0.88,
+          "calib": {
+            "trades": 3.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.06843562385292563,
+            "total_pnl": 0.20530687155877692,
+            "avg_pnl_per_market": 0.04106137431175538
+          },
+          "val": {
+            "trades": 11.0,
+            "win_rate": 0.7272727272727273,
+            "avg_pnl_per_trade": -0.16110114026887487,
+            "total_pnl": -1.7721125429576237,
+            "avg_pnl_per_market": -0.14767604524646863
+          }
+        },
+        {
+          "fold": 3,
+          "threshold": 0.92,
+          "calib": {
+            "trades": 6.0,
+            "win_rate": 0.6666666666666666,
+            "avg_pnl_per_trade": -0.30209577368147766,
+            "total_pnl": -1.812574642088866,
+            "avg_pnl_per_market": -0.22657183026110825
+          },
+          "val": {
+            "trades": 11.0,
+            "win_rate": 0.9090909090909091,
+            "avg_pnl_per_trade": -0.060579230599247996,
+            "total_pnl": -0.666371536591728,
+            "avg_pnl_per_market": -0.055530961382644
+          }
+        },
+        {
+          "fold": 4,
+          "threshold": 0.5,
+          "calib": {
+            "trades": 10.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.11965637529204151,
+            "total_pnl": 1.1965637529204152,
+            "avg_pnl_per_market": 0.11965637529204151
+          },
+          "val": {
+            "trades": 12.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.12163831806345647,
+            "total_pnl": 1.4596598167614776,
+            "avg_pnl_per_market": 0.12163831806345647
+          }
+        },
+        {
+          "fold": 5,
+          "threshold": 0.5,
+          "calib": {
+            "trades": 12.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.06075562686161634,
+            "total_pnl": 0.7290675223393961,
+            "avg_pnl_per_market": 0.06075562686161634
+          },
+          "val": {
+            "trades": 12.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.16152241067456555,
+            "total_pnl": 1.9382689280947865,
+            "avg_pnl_per_market": 0.16152241067456555
+          }
+        }
+      ],
+      "median_val_precision": 0.9166666666666666,
+      "min_val_precision": 0.7272727272727273,
+      "median_val_trades": 12.0,
+      "median_val_avg_market": 0.019641683303046425,
+      "score": 1.2677217440878803
+    },
+    {
+      "hp": {
+        "epochs": 1200,
+        "lr": 0.08,
+        "l2": 0.03
+      },
+      "folds": [
+        {
+          "fold": 1,
+          "threshold": 0.5,
+          "calib": {
+            "trades": 3.0,
+            "win_rate": 0.6666666666666666,
+            "avg_pnl_per_trade": -0.28003557136505114,
+            "total_pnl": -0.8401067140951535,
+            "avg_pnl_per_market": -0.28003557136505114
+          },
+          "val": {
+            "trades": 12.0,
+            "win_rate": 0.9166666666666666,
+            "avg_pnl_per_trade": 0.020514283615494584,
+            "total_pnl": 0.24617140338593502,
+            "avg_pnl_per_market": 0.020514283615494584
+          }
+        },
+        {
+          "fold": 2,
+          "threshold": 0.87,
+          "calib": {
+            "trades": 3.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.06843562385292563,
+            "total_pnl": 0.20530687155877692,
+            "avg_pnl_per_market": 0.04106137431175538
+          },
+          "val": {
+            "trades": 11.0,
+            "win_rate": 0.7272727272727273,
+            "avg_pnl_per_trade": -0.16110114026887487,
+            "total_pnl": -1.7721125429576237,
+            "avg_pnl_per_market": -0.14767604524646863
+          }
+        },
+        {
+          "fold": 3,
+          "threshold": 0.95,
+          "calib": {
+            "trades": 4.0,
+            "win_rate": 0.75,
+            "avg_pnl_per_trade": -0.223635463800905,
+            "total_pnl": -0.89454185520362,
+            "avg_pnl_per_market": -0.1118177319004525
+          },
+          "val": {
+            "trades": 8.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.024762165984642093,
+            "total_pnl": 0.19809732787713674,
+            "avg_pnl_per_market": 0.01650811065642806
+          }
+        },
+        {
+          "fold": 4,
+          "threshold": 0.5,
+          "calib": {
+            "trades": 10.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.11655487153264303,
+            "total_pnl": 1.1655487153264303,
+            "avg_pnl_per_market": 0.11655487153264303
+          },
+          "val": {
+            "trades": 12.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.12163831806345647,
+            "total_pnl": 1.4596598167614776,
+            "avg_pnl_per_market": 0.12163831806345647
+          }
+        },
+        {
+          "fold": 5,
+          "threshold": 0.5,
+          "calib": {
+            "trades": 12.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.06075562686161634,
+            "total_pnl": 0.7290675223393961,
+            "avg_pnl_per_market": 0.06075562686161634
+          },
+          "val": {
+            "trades": 12.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.16152241067456555,
+            "total_pnl": 1.9382689280947865,
+            "avg_pnl_per_market": 0.16152241067456555
+          }
+        }
+      ],
+      "median_val_precision": 1.0,
+      "min_val_precision": 0.7272727272727273,
+      "median_val_trades": 12.0,
+      "median_val_avg_market": 0.020514283615494584,
+      "score": 1.3511423374524585
+    },
+    {
+      "hp": {
+        "epochs": 1500,
+        "lr": 0.05,
+        "l2": 0.05
+      },
+      "folds": [
+        {
+          "fold": 1,
+          "threshold": 0.5,
+          "calib": {
+            "trades": 3.0,
+            "win_rate": 0.6666666666666666,
+            "avg_pnl_per_trade": -0.26555593335600136,
+            "total_pnl": -0.7966678000680041,
+            "avg_pnl_per_market": -0.26555593335600136
+          },
+          "val": {
+            "trades": 12.0,
+            "win_rate": 0.9166666666666666,
+            "avg_pnl_per_trade": 0.021836399000109974,
+            "total_pnl": 0.2620367880013197,
+            "avg_pnl_per_market": 0.021836399000109974
+          }
+        },
+        {
+          "fold": 2,
+          "threshold": 0.85,
+          "calib": {
+            "trades": 3.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.06843562385292563,
+            "total_pnl": 0.20530687155877692,
+            "avg_pnl_per_market": 0.04106137431175538
+          },
+          "val": {
+            "trades": 11.0,
+            "win_rate": 0.7272727272727273,
+            "avg_pnl_per_trade": -0.22664317566710498,
+            "total_pnl": -2.4930749323381547,
+            "avg_pnl_per_market": -0.20775624436151288
+          }
+        },
+        {
+          "fold": 3,
+          "threshold": 0.95,
+          "calib": {
+            "trades": 1.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.01538461538461533,
+            "total_pnl": 0.01538461538461533,
+            "avg_pnl_per_market": 0.0019230769230769162
+          },
+          "val": {
+            "trades": 6.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.019890475009925985,
+            "total_pnl": 0.11934285005955592,
+            "avg_pnl_per_market": 0.009945237504962992
+          }
+        },
+        {
+          "fold": 4,
+          "threshold": 0.5,
+          "calib": {
+            "trades": 10.0,
+            "win_rate": 0.9,
+            "avg_pnl_per_trade": 0.005241843199097285,
+            "total_pnl": 0.05241843199097285,
+            "avg_pnl_per_market": 0.005241843199097285
+          },
+          "val": {
+            "trades": 12.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.060291256716395104,
+            "total_pnl": 0.7234950805967413,
+            "avg_pnl_per_market": 0.060291256716395104
+          }
+        },
+        {
+          "fold": 5,
+          "threshold": 0.5,
+          "calib": {
+            "trades": 12.0,
+            "win_rate": 1.0,
+            "avg_pnl_per_trade": 0.06075562686161634,
+            "total_pnl": 0.7290675223393961,
+            "avg_pnl_per_market": 0.06075562686161634
+          },
+          "val": {
+            "trades": 12.0,
+            "win_rate": 0.9166666666666666,
+            "avg_pnl_per_trade": 0.01752012237697524,
+            "total_pnl": 0.21024146852370285,
+            "avg_pnl_per_market": 0.01752012237697524
+          }
+        }
+      ],
+      "median_val_precision": 0.9166666666666666,
+      "min_val_precision": 0.7272727272727273,
+      "median_val_trades": 12.0,
+      "median_val_avg_market": 0.01752012237697524,
+      "score": 1.2675095879952731
+    }
+  ],
+  "selected": {
+    "hp": {
+      "epochs": 1200,
+      "lr": 0.08,
+      "l2": 0.03
+    },
+    "folds": [
+      {
+        "fold": 1,
+        "threshold": 0.5,
+        "calib": {
+          "trades": 3.0,
+          "win_rate": 0.6666666666666666,
+          "avg_pnl_per_trade": -0.28003557136505114,
+          "total_pnl": -0.8401067140951535,
+          "avg_pnl_per_market": -0.28003557136505114
+        },
+        "val": {
+          "trades": 12.0,
+          "win_rate": 0.9166666666666666,
+          "avg_pnl_per_trade": 0.020514283615494584,
+          "total_pnl": 0.24617140338593502,
+          "avg_pnl_per_market": 0.020514283615494584
+        }
+      },
+      {
+        "fold": 2,
+        "threshold": 0.87,
+        "calib": {
+          "trades": 3.0,
+          "win_rate": 1.0,
+          "avg_pnl_per_trade": 0.06843562385292563,
+          "total_pnl": 0.20530687155877692,
+          "avg_pnl_per_market": 0.04106137431175538
+        },
+        "val": {
+          "trades": 11.0,
+          "win_rate": 0.7272727272727273,
+          "avg_pnl_per_trade": -0.16110114026887487,
+          "total_pnl": -1.7721125429576237,
+          "avg_pnl_per_market": -0.14767604524646863
+        }
+      },
+      {
+        "fold": 3,
+        "threshold": 0.95,
+        "calib": {
+          "trades": 4.0,
+          "win_rate": 0.75,
+          "avg_pnl_per_trade": -0.223635463800905,
+          "total_pnl": -0.89454185520362,
+          "avg_pnl_per_market": -0.1118177319004525
+        },
+        "val": {
+          "trades": 8.0,
+          "win_rate": 1.0,
+          "avg_pnl_per_trade": 0.024762165984642093,
+          "total_pnl": 0.19809732787713674,
+          "avg_pnl_per_market": 0.01650811065642806
+        }
+      },
+      {
+        "fold": 4,
+        "threshold": 0.5,
+        "calib": {
+          "trades": 10.0,
+          "win_rate": 1.0,
+          "avg_pnl_per_trade": 0.11655487153264303,
+          "total_pnl": 1.1655487153264303,
+          "avg_pnl_per_market": 0.11655487153264303
+        },
+        "val": {
+          "trades": 12.0,
+          "win_rate": 1.0,
+          "avg_pnl_per_trade": 0.12163831806345647,
+          "total_pnl": 1.4596598167614776,
+          "avg_pnl_per_market": 0.12163831806345647
+        }
+      },
+      {
+        "fold": 5,
+        "threshold": 0.5,
+        "calib": {
+          "trades": 12.0,
+          "win_rate": 1.0,
+          "avg_pnl_per_trade": 0.06075562686161634,
+          "total_pnl": 0.7290675223393961,
+          "avg_pnl_per_market": 0.06075562686161634
+        },
+        "val": {
+          "trades": 12.0,
+          "win_rate": 1.0,
+          "avg_pnl_per_trade": 0.16152241067456555,
+          "total_pnl": 1.9382689280947865,
+          "avg_pnl_per_market": 0.16152241067456555
+        }
+      }
+    ],
+    "median_val_precision": 1.0,
+    "min_val_precision": 0.7272727272727273,
+    "median_val_trades": 12.0,
+    "median_val_avg_market": 0.020514283615494584,
+    "score": 1.3511423374524585
+  },
+  "calibration_stats": {
+    "trades": 15.0,
+    "win_rate": 0.9333333333333333,
+    "avg_pnl_per_trade": 0.02994025219371208,
+    "total_pnl": 0.4491037829056812,
+    "avg_pnl_per_market": 0.02994025219371208
+  },
+  "holdout_stats": {
+    "trades": 23.0,
+    "win_rate": 0.8260869565217391,
+    "avg_pnl_per_trade": -0.061268258451949824,
+    "total_pnl": -1.409169944394846,
+    "avg_pnl_per_market": -0.05871541434978525
+  },
+  "holdout_markets": 24,
+  "holdout_samples": 1362
+}

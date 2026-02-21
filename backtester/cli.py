@@ -3,8 +3,9 @@ from __future__ import annotations
 
 import argparse
 import json
+from pathlib import Path
 
-from backtester.data import expand_paths, load_markets
+from backtester.data import expand_paths, is_complete_market, load_markets
 from backtester.engine import BacktestEngine, EngineConfig
 from backtester.gridsearch import load_grid, tune_strategy
 from backtester.metrics import print_summary, summarize
@@ -29,6 +30,29 @@ def parse_args() -> argparse.Namespace:
     eval_p.add_argument("--settle-win", type=float, default=0.99)
     eval_p.add_argument("--end-threshold-s", type=int, default=3)
     eval_p.add_argument("--show-markets", type=int, default=15)
+
+    eval_all_p = sub.add_parser("eval-all", help="Evaluate many strategies")
+    eval_all_p.add_argument(
+        "--strategy-glob",
+        nargs="+",
+        default=["strategies/*.py"],
+        help="Strategy file paths or globs",
+    )
+    eval_all_p.add_argument(
+        "--include-private",
+        action="store_true",
+        help="Include strategy files prefixed with '_'",
+    )
+    eval_all_p.add_argument(
+        "--jsonl",
+        nargs="+",
+        default=["btc_5m_prices-archive.jsonl", "btc_5m_prices.jsonl"],
+    )
+    eval_all_p.add_argument("--params-json", default="{}")
+    eval_all_p.add_argument("--start-cash", type=float, default=1000.0)
+    eval_all_p.add_argument("--default-bet-usd", type=float, default=10.0)
+    eval_all_p.add_argument("--settle-win", type=float, default=0.99)
+    eval_all_p.add_argument("--end-threshold-s", type=int, default=3)
 
     tune_p = sub.add_parser("tune", help="Gridsearch one strategy")
     tune_p.add_argument("--strategy-file", required=True)
@@ -96,6 +120,48 @@ def cmd_eval(args: argparse.Namespace) -> None:
             )
 
 
+def cmd_eval_all(args: argparse.Namespace) -> None:
+    engine = build_engine(args)
+    jsonl_paths = expand_paths(args.jsonl)
+    markets = load_markets(jsonl_paths)
+    strategy_paths = expand_paths(args.strategy_glob)
+    if not args.include_private:
+        strategy_paths = [p for p in strategy_paths if not Path(p).name.startswith("_")]
+    strategy_paths = sorted(dict.fromkeys(strategy_paths))
+    if not strategy_paths:
+        raise SystemExit("no strategy files found")
+
+    complete = sum(
+        1
+        for rows in markets.values()
+        if is_complete_market(rows, engine.config.complete_end_threshold_s)
+    )
+    print(f"files: {', '.join(jsonl_paths)}")
+    print(f"strategies: {len(strategy_paths)}")
+    print(f"markets_total: {len(markets)}")
+    print(f"markets_complete: {complete}")
+
+    params = json.loads(args.params_json)
+    rows: list[tuple[str, dict]] = []
+    for strategy_file in strategy_paths:
+        try:
+            run = engine.run_strategy(strategy_file, markets, params=params)
+            stats = summarize(run)
+            rows.append((strategy_file, stats))
+        except Exception as exc:
+            print(f"error: {strategy_file} -> {exc}")
+
+    rows.sort(key=lambda x: x[1]["total_pnl"], reverse=True)
+    print("results:")
+    for strategy_file, stats in rows:
+        print(
+            f"  {strategy_file}: total_pnl={stats['total_pnl']:.4f} "
+            f"avg_pnl={stats['avg_pnl']:.4f} median_pnl={stats['median_pnl']:.4f} "
+            f"win_rate={stats['win_rate']:.2f}% trades={stats['trade_count']} "
+            f"markets={stats['markets']}"
+        )
+
+
 def cmd_tune(args: argparse.Namespace) -> None:
     engine = build_engine(args)
     paths = expand_paths(args.jsonl)
@@ -139,6 +205,8 @@ def main() -> None:
     args = parse_args()
     if args.cmd == "eval":
         cmd_eval(args)
+    elif args.cmd == "eval-all":
+        cmd_eval_all(args)
     elif args.cmd == "tune":
         cmd_tune(args)
 

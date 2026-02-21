@@ -1,0 +1,65 @@
+{
+  "model_file": "backtester/late_profit_model_robust.json",
+  "start_cash": 100.0,
+  "samples": 4305,
+  "train_samples": 2982,
+  "test_samples": 1323,
+  "best_train_policy": {
+    "ev_min": -0.02,
+    "kelly_scale": 0.6,
+    "max_frac": 0.2,
+    "min_frac": 0.0,
+    "train": {
+      "start_cash": 100.0,
+      "end_cash": 610.7687990016436,
+      "net_pnl": 510.76879900164363,
+      "return_pct": 510.76879900164363,
+      "trades": 48.0,
+      "win_rate": 0.7916666666666666,
+      "avg_bet_frac": 0.18623586523162003,
+      "avg_bet_usd": 39.06506136186993,
+      "max_drawdown_pct": 40.649208277952276
+    },
+    "score": 610.7687990016436
+  },
+  "best_test_result": {
+    "start_cash": 100.0,
+    "end_cash": 233.16319540725547,
+    "net_pnl": 133.16319540725547,
+    "return_pct": 133.16319540725544,
+    "trades": 19.0,
+    "win_rate": 0.8421052631578947,
+    "avg_bet_frac": 0.18192327528000668,
+    "avg_bet_usd": 34.86902055181252,
+    "max_drawdown_pct": 23.368223812622
+  },
+  "defensive_train_policy": {
+    "ev_min": -0.02,
+    "kelly_scale": 1.25,
+    "max_frac": 0.1,
+    "min_frac": 0.0,
+    "train": {
+      "start_cash": 100.0,
+      "end_cash": 285.3018706169545,
+      "net_pnl": 185.3018706169545,
+      "return_pct": 185.30187061695446,
+      "trades": 48.0,
+      "win_rate": 0.7916666666666666,
+      "avg_bet_frac": 0.09850095048353423,
+      "avg_bet_usd": 15.435597916779699,
+      "max_drawdown_pct": 20.373976045027767
+    },
+    "score": 285.3018706169545
+  },
+  "defensive_test_result": {
+    "start_cash": 100.0,
+    "end_cash": 166.22377377960464,
+    "net_pnl": 66.22377377960464,
+    "return_pct": 66.22377377960464,
+    "trades": 19.0,
+    "win_rate": 0.8421052631578947,
+    "avg_bet_frac": 0.09935372146554032,
+    "avg_bet_usd": 14.196323829436972,
+    "max_drawdown_pct": 11.146899804814584
+  }
+}
