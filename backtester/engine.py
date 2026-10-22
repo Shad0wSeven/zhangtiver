@@ -3,11 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from livetrader.strategy_api import Action, StrategyContext, Tick
-
 from backtester.data import is_complete_market, market_winner
 from backtester.loader import instantiate_strategy
 from backtester.types import MarketResult, StrategyState, Trade
+from livetrader.strategy_api import Action, StrategyContext, Tick
 
 
 @dataclass
@@ -16,6 +15,7 @@ class EngineConfig:
     default_bet_usd: float = 10.0
     settlement_win_price: float = 0.99
     complete_end_threshold_s: int = 3
+    fee_model: str = "polymarket_table"
 
 
 class BacktestEngine:
@@ -31,6 +31,45 @@ class BacktestEngine:
         if isinstance(raw, list):
             return [a for a in raw if isinstance(a, Action)]
         return []
+
+    def _fee_rate(self, price: float) -> float:
+        if self.config.fee_model == "none":
+            return 0.0
+        # Piecewise-linear interpolation from the fee schedule provided by user.
+        # Values are fee percentages as decimals by contract price.
+        table = [
+            (0.01, 0.0000),
+            (0.05, 0.0006),
+            (0.10, 0.0020),
+            (0.15, 0.0041),
+            (0.20, 0.0064),
+            (0.25, 0.0088),
+            (0.30, 0.0110),
+            (0.35, 0.0129),
+            (0.40, 0.0144),
+            (0.45, 0.0153),
+            (0.50, 0.0156),
+            (0.55, 0.0153),
+            (0.60, 0.0144),
+            (0.65, 0.0129),
+            (0.70, 0.0110),
+            (0.75, 0.0088),
+            (0.80, 0.0064),
+            (0.85, 0.0041),
+            (0.90, 0.0020),
+            (0.95, 0.0006),
+            (0.99, 0.0000),
+        ]
+        p = max(table[0][0], min(table[-1][0], price))
+        for i in range(1, len(table)):
+            p0, r0 = table[i - 1]
+            p1, r1 = table[i]
+            if p <= p1:
+                if p1 <= p0:
+                    return r1
+                t = (p - p0) / (p1 - p0)
+                return r0 + t * (r1 - r0)
+        return table[-1][1]
 
     def _apply_action(
         self,
@@ -51,17 +90,21 @@ class BacktestEngine:
 
         size = float(action.size)
         if side == "buy":
+            rate = self._fee_rate(price)
             if size == 1.0:
                 notional = self.config.default_bet_usd
             elif 0 < size < 1:
                 notional = state.cash * size
             else:
                 notional = size
-            notional = min(notional, state.cash)
+            # Budget includes fee, so cap notional by cash/(1+rate).
+            notional = min(notional, state.cash / (1.0 + rate))
             if notional <= 0:
                 return
+            fee = notional * rate
             qty = notional / price
-            state.cash -= notional
+            state.cash -= notional + fee
+            state.total_fees += fee
             state.positions[token] += qty
             state.costs[token] += notional
             state.trades.append(
@@ -74,6 +117,7 @@ class BacktestEngine:
                     price=price,
                     qty=qty,
                     notional=notional,
+                    fee=fee,
                     time_remaining=tick.time_remaining,
                     comment=action.comment,
                 )
@@ -87,9 +131,15 @@ class BacktestEngine:
         qty = min(qty, state.positions[token])
         if qty <= 0:
             return
-        avg_cost = state.costs[token] / state.positions[token] if state.positions[token] > 0 else 0.0
+        avg_cost = (
+            state.costs[token] / state.positions[token]
+            if state.positions[token] > 0
+            else 0.0
+        )
         notional = qty * price
-        state.cash += notional
+        fee = notional * self._fee_rate(price)
+        state.cash += notional - fee
+        state.total_fees += fee
         state.positions[token] -= qty
         state.costs[token] -= qty * avg_cost
         if state.positions[token] <= 1e-9:
@@ -105,6 +155,7 @@ class BacktestEngine:
                 price=price,
                 qty=qty,
                 notional=notional,
+                fee=fee,
                 time_remaining=tick.time_remaining,
                 comment=action.comment,
             )
@@ -189,6 +240,9 @@ class BacktestEngine:
                 pass
 
             pnl = state.cash - self.config.window_start_cash
+            duration_s = max(
+                1, int(rows[-1].timestamp) - int(rows[0].timestamp) if rows else 1
+            )
             market_results.append(
                 MarketResult(
                     market=market,
@@ -197,6 +251,8 @@ class BacktestEngine:
                     trades=len(state.trades),
                     end_cash=state.cash,
                     max_drawdown=max_drawdown,
+                    fees=state.total_fees,
+                    duration_s=duration_s,
                 )
             )
             all_trades.extend(state.trades)

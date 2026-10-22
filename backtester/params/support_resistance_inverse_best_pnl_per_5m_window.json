@@ -1,0 +1,21 @@
+{
+  "base_size": 0.1,
+  "cooldown_s": 4,
+  "entry_fee_rate_cap": 0.009,
+  "exit_fee_rate_cap": 0.013,
+  "exit_min_abs_from_mid": 0.1,
+  "level_bin": 0.004,
+  "lookback": 70,
+  "max_entries_per_market": 1,
+  "max_price": 0.94,
+  "min_abs_from_mid": 0.16,
+  "min_hold_s": 5,
+  "min_level_gap": 0.03,
+  "pivot_span": 3,
+  "stop_loss_cents": 0.015,
+  "take_profit_cents": 0.03,
+  "touch_eps": 0.004,
+  "trailing_drop_cents": 0.016,
+  "window_high_s": 110,
+  "window_low_s": 8
+}

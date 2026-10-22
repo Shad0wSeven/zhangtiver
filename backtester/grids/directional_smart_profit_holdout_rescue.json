@@ -1,0 +1,18 @@
+{
+  "params": {
+    "bet_usd": [4.0, 6.0, 8.0],
+    "entry_window_low_s": [5],
+    "entry_window_high_s": [45, 60],
+    "max_entries_per_market": [1],
+    "max_price": [0.90, 0.94],
+    "max_sum_asks": [1.00, 1.01],
+    "max_spread": [0.03, 0.04],
+    "min_score": [0.012, 0.018],
+    "ev_threshold": [0.008, 0.015, 0.025],
+    "take_profit_price": [0.90],
+    "take_profit_min_gain_cents": [0.012, 0.016],
+    "max_hold_s": [45, 60],
+    "flip_exit_score_gap": [0.03, 0.05],
+    "force_exit_s": [2]
+  }
+}

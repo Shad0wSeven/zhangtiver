@@ -1,0 +1,1948 @@
+{
+  "files": [
+    "btc_5m_prices-archive.jsonl",
+    "btc_5m_prices.jsonl"
+  ],
+  "engine": {
+    "window_start_cash": 100.0,
+    "default_bet_usd": 10.0,
+    "settlement_win_price": 0.99,
+    "complete_end_threshold_s": 3
+  },
+  "objective": "total_pnl",
+  "max_combos": 180,
+  "strategies": {
+    "strategies/active_pair_scalper.py": {
+      "grid_file": "backtester/grids/active_pair_scalper_fast.json",
+      "total_combos_tested": 180,
+      "best": {
+        "params": {
+          "cooldown_s": 1,
+          "entry_sum_max": 0.94,
+          "entry_z_min": 0.6,
+          "exit_sum_min": 0.98,
+          "max_hold_s": 8,
+          "max_mid_imbalance": 0.22,
+          "max_spread_sum": 0.04,
+          "per_leg_usd": 16.0,
+          "recent_sum_n": 8,
+          "stop_sum_max": 0.9,
+          "window_high_s": 80,
+          "window_low_s": 5
+        },
+        "stats": {
+          "markets": 80,
+          "total_pnl": 0.0,
+          "avg_pnl": 0.0,
+          "median_pnl": 0.0,
+          "win_rate": 0.0,
+          "trade_count": 0,
+          "avg_trades_per_market": 0.0,
+          "max_drawdown": 0.0,
+          "profit_factor": Infinity,
+          "sharpe_like": 0.0
+        }
+      },
+      "top": [
+        {
+          "params": {
+            "cooldown_s": 1,
+            "entry_sum_max": 0.94,
+            "entry_z_min": 0.6,
+            "exit_sum_min": 0.98,
+            "max_hold_s": 8,
+            "max_mid_imbalance": 0.22,
+            "max_spread_sum": 0.04,
+            "per_leg_usd": 16.0,
+            "recent_sum_n": 8,
+            "stop_sum_max": 0.9,
+            "window_high_s": 80,
+            "window_low_s": 5
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 0.0,
+            "avg_pnl": 0.0,
+            "median_pnl": 0.0,
+            "win_rate": 0.0,
+            "trade_count": 0,
+            "avg_trades_per_market": 0.0,
+            "max_drawdown": 0.0,
+            "profit_factor": Infinity,
+            "sharpe_like": 0.0
+          }
+        },
+        {
+          "params": {
+            "cooldown_s": 1,
+            "entry_sum_max": 0.94,
+            "entry_z_min": 0.6,
+            "exit_sum_min": 0.98,
+            "max_hold_s": 8,
+            "max_mid_imbalance": 0.22,
+            "max_spread_sum": 0.04,
+            "per_leg_usd": 16.0,
+            "recent_sum_n": 8,
+            "stop_sum_max": 0.9,
+            "window_high_s": 80,
+            "window_low_s": 8
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 0.0,
+            "avg_pnl": 0.0,
+            "median_pnl": 0.0,
+            "win_rate": 0.0,
+            "trade_count": 0,
+            "avg_trades_per_market": 0.0,
+            "max_drawdown": 0.0,
+            "profit_factor": Infinity,
+            "sharpe_like": 0.0
+          }
+        },
+        {
+          "params": {
+            "cooldown_s": 1,
+            "entry_sum_max": 0.94,
+            "entry_z_min": 0.6,
+            "exit_sum_min": 0.98,
+            "max_hold_s": 8,
+            "max_mid_imbalance": 0.22,
+            "max_spread_sum": 0.04,
+            "per_leg_usd": 16.0,
+            "recent_sum_n": 8,
+            "stop_sum_max": 0.9,
+            "window_high_s": 110,
+            "window_low_s": 5
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 0.0,
+            "avg_pnl": 0.0,
+            "median_pnl": 0.0,
+            "win_rate": 0.0,
+            "trade_count": 0,
+            "avg_trades_per_market": 0.0,
+            "max_drawdown": 0.0,
+            "profit_factor": Infinity,
+            "sharpe_like": 0.0
+          }
+        },
+        {
+          "params": {
+            "cooldown_s": 1,
+            "entry_sum_max": 0.94,
+            "entry_z_min": 0.6,
+            "exit_sum_min": 0.98,
+            "max_hold_s": 8,
+            "max_mid_imbalance": 0.22,
+            "max_spread_sum": 0.04,
+            "per_leg_usd": 16.0,
+            "recent_sum_n": 8,
+            "stop_sum_max": 0.9,
+            "window_high_s": 110,
+            "window_low_s": 8
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 0.0,
+            "avg_pnl": 0.0,
+            "median_pnl": 0.0,
+            "win_rate": 0.0,
+            "trade_count": 0,
+            "avg_trades_per_market": 0.0,
+            "max_drawdown": 0.0,
+            "profit_factor": Infinity,
+            "sharpe_like": 0.0
+          }
+        },
+        {
+          "params": {
+            "cooldown_s": 1,
+            "entry_sum_max": 0.94,
+            "entry_z_min": 0.6,
+            "exit_sum_min": 0.98,
+            "max_hold_s": 8,
+            "max_mid_imbalance": 0.22,
+            "max_spread_sum": 0.04,
+            "per_leg_usd": 16.0,
+            "recent_sum_n": 8,
+            "stop_sum_max": 0.915,
+            "window_high_s": 80,
+            "window_low_s": 5
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 0.0,
+            "avg_pnl": 0.0,
+            "median_pnl": 0.0,
+            "win_rate": 0.0,
+            "trade_count": 0,
+            "avg_trades_per_market": 0.0,
+            "max_drawdown": 0.0,
+            "profit_factor": Infinity,
+            "sharpe_like": 0.0
+          }
+        }
+      ]
+    },
+    "strategies/active_pair_ladder.py": {
+      "grid_file": "backtester/grids/active_pair_ladder_fast.json",
+      "total_combos_tested": 180,
+      "best": {
+        "params": {
+          "cooldown_s": 1,
+          "entry_1": 0.955,
+          "entry_2": 0.935,
+          "entry_3": 0.915,
+          "exit_1": 0.975,
+          "exit_2": 0.985,
+          "max_hold_s": 16,
+          "max_mid_imbalance": 0.28,
+          "max_spread_sum": 0.06,
+          "per_leg_usd": 12.0,
+          "stop_sum": 0.87,
+          "window_high_s": 100,
+          "window_low_s": 5
+        },
+        "stats": {
+          "markets": 80,
+          "total_pnl": 0.0,
+          "avg_pnl": 0.0,
+          "median_pnl": 0.0,
+          "win_rate": 0.0,
+          "trade_count": 0,
+          "avg_trades_per_market": 0.0,
+          "max_drawdown": 0.0,
+          "profit_factor": Infinity,
+          "sharpe_like": 0.0
+        }
+      },
+      "top": [
+        {
+          "params": {
+            "cooldown_s": 1,
+            "entry_1": 0.955,
+            "entry_2": 0.935,
+            "entry_3": 0.915,
+            "exit_1": 0.975,
+            "exit_2": 0.985,
+            "max_hold_s": 16,
+            "max_mid_imbalance": 0.28,
+            "max_spread_sum": 0.06,
+            "per_leg_usd": 12.0,
+            "stop_sum": 0.87,
+            "window_high_s": 100,
+            "window_low_s": 5
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 0.0,
+            "avg_pnl": 0.0,
+            "median_pnl": 0.0,
+            "win_rate": 0.0,
+            "trade_count": 0,
+            "avg_trades_per_market": 0.0,
+            "max_drawdown": 0.0,
+            "profit_factor": Infinity,
+            "sharpe_like": 0.0
+          }
+        },
+        {
+          "params": {
+            "cooldown_s": 1,
+            "entry_1": 0.955,
+            "entry_2": 0.935,
+            "entry_3": 0.915,
+            "exit_1": 0.975,
+            "exit_2": 0.985,
+            "max_hold_s": 16,
+            "max_mid_imbalance": 0.28,
+            "max_spread_sum": 0.06,
+            "per_leg_usd": 12.0,
+            "stop_sum": 0.87,
+            "window_high_s": 100,
+            "window_low_s": 8
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 0.0,
+            "avg_pnl": 0.0,
+            "median_pnl": 0.0,
+            "win_rate": 0.0,
+            "trade_count": 0,
+            "avg_trades_per_market": 0.0,
+            "max_drawdown": 0.0,
+            "profit_factor": Infinity,
+            "sharpe_like": 0.0
+          }
+        },
+        {
+          "params": {
+            "cooldown_s": 1,
+            "entry_1": 0.955,
+            "entry_2": 0.935,
+            "entry_3": 0.915,
+            "exit_1": 0.975,
+            "exit_2": 0.985,
+            "max_hold_s": 16,
+            "max_mid_imbalance": 0.28,
+            "max_spread_sum": 0.06,
+            "per_leg_usd": 12.0,
+            "stop_sum": 0.87,
+            "window_high_s": 125,
+            "window_low_s": 5
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 0.0,
+            "avg_pnl": 0.0,
+            "median_pnl": 0.0,
+            "win_rate": 0.0,
+            "trade_count": 0,
+            "avg_trades_per_market": 0.0,
+            "max_drawdown": 0.0,
+            "profit_factor": Infinity,
+            "sharpe_like": 0.0
+          }
+        },
+        {
+          "params": {
+            "cooldown_s": 1,
+            "entry_1": 0.955,
+            "entry_2": 0.935,
+            "entry_3": 0.915,
+            "exit_1": 0.975,
+            "exit_2": 0.985,
+            "max_hold_s": 16,
+            "max_mid_imbalance": 0.28,
+            "max_spread_sum": 0.06,
+            "per_leg_usd": 12.0,
+            "stop_sum": 0.87,
+            "window_high_s": 125,
+            "window_low_s": 8
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 0.0,
+            "avg_pnl": 0.0,
+            "median_pnl": 0.0,
+            "win_rate": 0.0,
+            "trade_count": 0,
+            "avg_trades_per_market": 0.0,
+            "max_drawdown": 0.0,
+            "profit_factor": Infinity,
+            "sharpe_like": 0.0
+          }
+        },
+        {
+          "params": {
+            "cooldown_s": 1,
+            "entry_1": 0.955,
+            "entry_2": 0.935,
+            "entry_3": 0.915,
+            "exit_1": 0.975,
+            "exit_2": 0.985,
+            "max_hold_s": 16,
+            "max_mid_imbalance": 0.28,
+            "max_spread_sum": 0.06,
+            "per_leg_usd": 12.0,
+            "stop_sum": 0.89,
+            "window_high_s": 100,
+            "window_low_s": 5
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 0.0,
+            "avg_pnl": 0.0,
+            "median_pnl": 0.0,
+            "win_rate": 0.0,
+            "trade_count": 0,
+            "avg_trades_per_market": 0.0,
+            "max_drawdown": 0.0,
+            "profit_factor": Infinity,
+            "sharpe_like": 0.0
+          }
+        }
+      ]
+    },
+    "strategies/aggressive_breakout.py": {
+      "grid_file": "backtester/grids/aggressive_breakout_fast.json",
+      "total_combos_tested": 180,
+      "best": {
+        "params": {
+          "bet_pct": 0.35,
+          "bid_min": 0.84,
+          "late_seconds": 20,
+          "mom_gap_min": 0.01,
+          "spread_cap": 0.04,
+          "strength_min": 0.05,
+          "vol_cap_60s": 0.05
+        },
+        "stats": {
+          "markets": 80,
+          "total_pnl": 112.55542577599111,
+          "avg_pnl": 1.406942822199889,
+          "median_pnl": 0.0,
+          "win_rate": 46.25,
+          "trade_count": 38,
+          "avg_trades_per_market": 0.475,
+          "max_drawdown": 34.37869822485207,
+          "profit_factor": 4.215869307885461,
+          "sharpe_like": 0.30150925740820117
+        }
+      },
+      "top": [
+        {
+          "params": {
+            "bet_pct": 0.35,
+            "bid_min": 0.84,
+            "late_seconds": 20,
+            "mom_gap_min": 0.01,
+            "spread_cap": 0.04,
+            "strength_min": 0.05,
+            "vol_cap_60s": 0.05
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 112.55542577599111,
+            "avg_pnl": 1.406942822199889,
+            "median_pnl": 0.0,
+            "win_rate": 46.25,
+            "trade_count": 38,
+            "avg_trades_per_market": 0.475,
+            "max_drawdown": 34.37869822485207,
+            "profit_factor": 4.215869307885461,
+            "sharpe_like": 0.30150925740820117
+          }
+        },
+        {
+          "params": {
+            "bet_pct": 0.35,
+            "bid_min": 0.84,
+            "late_seconds": 20,
+            "mom_gap_min": 0.01,
+            "spread_cap": 0.04,
+            "strength_min": 0.08,
+            "vol_cap_60s": 0.05
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 112.55542577599111,
+            "avg_pnl": 1.406942822199889,
+            "median_pnl": 0.0,
+            "win_rate": 46.25,
+            "trade_count": 38,
+            "avg_trades_per_market": 0.475,
+            "max_drawdown": 34.37869822485207,
+            "profit_factor": 4.215869307885461,
+            "sharpe_like": 0.30150925740820117
+          }
+        },
+        {
+          "params": {
+            "bet_pct": 0.35,
+            "bid_min": 0.84,
+            "late_seconds": 20,
+            "mom_gap_min": 0.01,
+            "spread_cap": 0.04,
+            "strength_min": 0.12,
+            "vol_cap_60s": 0.05
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 112.55542577599111,
+            "avg_pnl": 1.406942822199889,
+            "median_pnl": 0.0,
+            "win_rate": 46.25,
+            "trade_count": 38,
+            "avg_trades_per_market": 0.475,
+            "max_drawdown": 34.37869822485207,
+            "profit_factor": 4.215869307885461,
+            "sharpe_like": 0.30150925740820117
+          }
+        },
+        {
+          "params": {
+            "bet_pct": 0.35,
+            "bid_min": 0.84,
+            "late_seconds": 20,
+            "mom_gap_min": 0.01,
+            "spread_cap": 0.03,
+            "strength_min": 0.05,
+            "vol_cap_60s": 0.05
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 108.58498841698031,
+            "avg_pnl": 1.357312355212254,
+            "median_pnl": 0.0,
+            "win_rate": 46.25,
+            "trade_count": 38,
+            "avg_trades_per_market": 0.475,
+            "max_drawdown": 34.37869822485207,
+            "profit_factor": 4.1024282404851515,
+            "sharpe_like": 0.292702552394029
+          }
+        },
+        {
+          "params": {
+            "bet_pct": 0.35,
+            "bid_min": 0.84,
+            "late_seconds": 20,
+            "mom_gap_min": 0.01,
+            "spread_cap": 0.03,
+            "strength_min": 0.08,
+            "vol_cap_60s": 0.05
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 108.58498841698031,
+            "avg_pnl": 1.357312355212254,
+            "median_pnl": 0.0,
+            "win_rate": 46.25,
+            "trade_count": 38,
+            "avg_trades_per_market": 0.475,
+            "max_drawdown": 34.37869822485207,
+            "profit_factor": 4.1024282404851515,
+            "sharpe_like": 0.292702552394029
+          }
+        }
+      ]
+    },
+    "strategies/late_flip_hunter.py": {
+      "grid_file": "backtester/grids/late_flip_hunter_fast.json",
+      "total_combos_tested": 180,
+      "best": {
+        "params": {
+          "bet_pct": 0.18,
+          "confirm_ticks": 2,
+          "entry_bid_min": 0.58,
+          "entry_gap_min": 0.01,
+          "flip_lookback": 14,
+          "jump_cap": 0.02,
+          "spread_cap": 0.02,
+          "window_high_s": 45,
+          "window_low_s": 4
+        },
+        "stats": {
+          "markets": 80,
+          "total_pnl": 27.030148376140204,
+          "avg_pnl": 0.33787685470175255,
+          "median_pnl": 0.0,
+          "win_rate": 12.5,
+          "trade_count": 13,
+          "avg_trades_per_market": 0.1625,
+          "max_drawdown": 25.055999999999997,
+          "profit_factor": 1.5005583032618557,
+          "sharpe_like": 0.0723491382509138
+        }
+      },
+      "top": [
+        {
+          "params": {
+            "bet_pct": 0.18,
+            "confirm_ticks": 2,
+            "entry_bid_min": 0.58,
+            "entry_gap_min": 0.01,
+            "flip_lookback": 14,
+            "jump_cap": 0.02,
+            "spread_cap": 0.02,
+            "window_high_s": 45,
+            "window_low_s": 4
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 27.030148376140204,
+            "avg_pnl": 0.33787685470175255,
+            "median_pnl": 0.0,
+            "win_rate": 12.5,
+            "trade_count": 13,
+            "avg_trades_per_market": 0.1625,
+            "max_drawdown": 25.055999999999997,
+            "profit_factor": 1.5005583032618557,
+            "sharpe_like": 0.0723491382509138
+          }
+        },
+        {
+          "params": {
+            "bet_pct": 0.18,
+            "confirm_ticks": 2,
+            "entry_bid_min": 0.58,
+            "entry_gap_min": 0.01,
+            "flip_lookback": 14,
+            "jump_cap": 0.02,
+            "spread_cap": 0.02,
+            "window_high_s": 45,
+            "window_low_s": 6
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 27.030148376140204,
+            "avg_pnl": 0.33787685470175255,
+            "median_pnl": 0.0,
+            "win_rate": 12.5,
+            "trade_count": 13,
+            "avg_trades_per_market": 0.1625,
+            "max_drawdown": 25.055999999999997,
+            "profit_factor": 1.5005583032618557,
+            "sharpe_like": 0.0723491382509138
+          }
+        },
+        {
+          "params": {
+            "bet_pct": 0.18,
+            "confirm_ticks": 2,
+            "entry_bid_min": 0.58,
+            "entry_gap_min": 0.01,
+            "flip_lookback": 14,
+            "jump_cap": 0.03,
+            "spread_cap": 0.02,
+            "window_high_s": 45,
+            "window_low_s": 4
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 27.030148376140204,
+            "avg_pnl": 0.33787685470175255,
+            "median_pnl": 0.0,
+            "win_rate": 12.5,
+            "trade_count": 13,
+            "avg_trades_per_market": 0.1625,
+            "max_drawdown": 25.055999999999997,
+            "profit_factor": 1.5005583032618557,
+            "sharpe_like": 0.0723491382509138
+          }
+        },
+        {
+          "params": {
+            "bet_pct": 0.18,
+            "confirm_ticks": 2,
+            "entry_bid_min": 0.58,
+            "entry_gap_min": 0.01,
+            "flip_lookback": 14,
+            "jump_cap": 0.03,
+            "spread_cap": 0.02,
+            "window_high_s": 45,
+            "window_low_s": 6
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 27.030148376140204,
+            "avg_pnl": 0.33787685470175255,
+            "median_pnl": 0.0,
+            "win_rate": 12.5,
+            "trade_count": 13,
+            "avg_trades_per_market": 0.1625,
+            "max_drawdown": 25.055999999999997,
+            "profit_factor": 1.5005583032618557,
+            "sharpe_like": 0.0723491382509138
+          }
+        },
+        {
+          "params": {
+            "bet_pct": 0.18,
+            "confirm_ticks": 2,
+            "entry_bid_min": 0.58,
+            "entry_gap_min": 0.01,
+            "flip_lookback": 14,
+            "jump_cap": 0.04,
+            "spread_cap": 0.02,
+            "window_high_s": 45,
+            "window_low_s": 4
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 27.030148376140204,
+            "avg_pnl": 0.33787685470175255,
+            "median_pnl": 0.0,
+            "win_rate": 12.5,
+            "trade_count": 13,
+            "avg_trades_per_market": 0.1625,
+            "max_drawdown": 25.055999999999997,
+            "profit_factor": 1.5005583032618557,
+            "sharpe_like": 0.0723491382509138
+          }
+        }
+      ]
+    },
+    "strategies/mean_reversion.py": {
+      "grid_file": "backtester/grids/mean_reversion_fast.json",
+      "total_combos_tested": 180,
+      "best": {
+        "params": {
+          "bid_strength_min": 0.006,
+          "early_pct": 0.2,
+          "entry_price_cap": 0.94,
+          "flip_rate_cap_60s": 0.2,
+          "jump_cap": 0.015,
+          "late_pct": 0.35,
+          "late_seconds": 12,
+          "long_n": 28,
+          "pullback_min": 0.0015,
+          "short_n": 8,
+          "spread_cap": 0.03,
+          "trend_gap_min": 0.004,
+          "vol_cap_60s": 0.045
+        },
+        "stats": {
+          "markets": 80,
+          "total_pnl": 26.638143385004696,
+          "avg_pnl": 0.3329767923125587,
+          "median_pnl": 0.0,
+          "win_rate": 7.5,
+          "trade_count": 7,
+          "avg_trades_per_market": 0.0875,
+          "max_drawdown": 23.55263157894737,
+          "profit_factor": 2.331907169250235,
+          "sharpe_like": 0.10217198444179436
+        }
+      },
+      "top": [
+        {
+          "params": {
+            "bid_strength_min": 0.006,
+            "early_pct": 0.2,
+            "entry_price_cap": 0.94,
+            "flip_rate_cap_60s": 0.2,
+            "jump_cap": 0.015,
+            "late_pct": 0.35,
+            "late_seconds": 12,
+            "long_n": 28,
+            "pullback_min": 0.0015,
+            "short_n": 8,
+            "spread_cap": 0.03,
+            "trend_gap_min": 0.004,
+            "vol_cap_60s": 0.045
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 26.638143385004696,
+            "avg_pnl": 0.3329767923125587,
+            "median_pnl": 0.0,
+            "win_rate": 7.5,
+            "trade_count": 7,
+            "avg_trades_per_market": 0.0875,
+            "max_drawdown": 23.55263157894737,
+            "profit_factor": 2.331907169250235,
+            "sharpe_like": 0.10217198444179436
+          }
+        },
+        {
+          "params": {
+            "bid_strength_min": 0.006,
+            "early_pct": 0.2,
+            "entry_price_cap": 0.94,
+            "flip_rate_cap_60s": 0.2,
+            "jump_cap": 0.015,
+            "late_pct": 0.35,
+            "late_seconds": 12,
+            "long_n": 28,
+            "pullback_min": 0.0015,
+            "short_n": 8,
+            "spread_cap": 0.03,
+            "trend_gap_min": 0.004,
+            "vol_cap_60s": 0.06
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 26.638143385004696,
+            "avg_pnl": 0.3329767923125587,
+            "median_pnl": 0.0,
+            "win_rate": 7.5,
+            "trade_count": 7,
+            "avg_trades_per_market": 0.0875,
+            "max_drawdown": 23.55263157894737,
+            "profit_factor": 2.331907169250235,
+            "sharpe_like": 0.10217198444179436
+          }
+        },
+        {
+          "params": {
+            "bid_strength_min": 0.006,
+            "early_pct": 0.2,
+            "entry_price_cap": 0.94,
+            "flip_rate_cap_60s": 0.2,
+            "jump_cap": 0.015,
+            "late_pct": 0.35,
+            "late_seconds": 12,
+            "long_n": 28,
+            "pullback_min": 0.002,
+            "short_n": 8,
+            "spread_cap": 0.03,
+            "trend_gap_min": 0.004,
+            "vol_cap_60s": 0.045
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 26.638143385004696,
+            "avg_pnl": 0.3329767923125587,
+            "median_pnl": 0.0,
+            "win_rate": 7.5,
+            "trade_count": 7,
+            "avg_trades_per_market": 0.0875,
+            "max_drawdown": 23.55263157894737,
+            "profit_factor": 2.331907169250235,
+            "sharpe_like": 0.10217198444179436
+          }
+        },
+        {
+          "params": {
+            "bid_strength_min": 0.006,
+            "early_pct": 0.2,
+            "entry_price_cap": 0.94,
+            "flip_rate_cap_60s": 0.2,
+            "jump_cap": 0.015,
+            "late_pct": 0.35,
+            "late_seconds": 12,
+            "long_n": 28,
+            "pullback_min": 0.002,
+            "short_n": 8,
+            "spread_cap": 0.03,
+            "trend_gap_min": 0.004,
+            "vol_cap_60s": 0.06
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 26.638143385004696,
+            "avg_pnl": 0.3329767923125587,
+            "median_pnl": 0.0,
+            "win_rate": 7.5,
+            "trade_count": 7,
+            "avg_trades_per_market": 0.0875,
+            "max_drawdown": 23.55263157894737,
+            "profit_factor": 2.331907169250235,
+            "sharpe_like": 0.10217198444179436
+          }
+        },
+        {
+          "params": {
+            "bid_strength_min": 0.006,
+            "early_pct": 0.2,
+            "entry_price_cap": 0.94,
+            "flip_rate_cap_60s": 0.2,
+            "jump_cap": 0.015,
+            "late_pct": 0.35,
+            "late_seconds": 12,
+            "long_n": 28,
+            "pullback_min": 0.0015,
+            "short_n": 8,
+            "spread_cap": 0.03,
+            "trend_gap_min": 0.004,
+            "vol_cap_60s": 0.03
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 24.009571956433263,
+            "avg_pnl": 0.3001196494554158,
+            "median_pnl": 0.0,
+            "win_rate": 6.25,
+            "trade_count": 6,
+            "avg_trades_per_market": 0.075,
+            "max_drawdown": 23.55263157894737,
+            "profit_factor": 2.200478597821663,
+            "sharpe_like": 0.09237553068735066
+          }
+        }
+      ]
+    },
+    "strategies/momentum.py": {
+      "grid_file": "backtester/grids/late_dominance_fast.json",
+      "total_combos_tested": 180,
+      "best": {
+        "params": {
+          "accel_min": 0.001,
+          "bid_min": 0.94,
+          "early_pct": 0.2,
+          "flip_rate_cap_60s": 0.18,
+          "late_pct": 0.3,
+          "late_seconds": 12,
+          "momentum_gap_min": 0.01,
+          "spread_max": 0.015,
+          "strength_min": 0.04,
+          "vol_cap_60s": 0.04
+        },
+        "stats": {
+          "markets": 80,
+          "total_pnl": 2.1989528795811566,
+          "avg_pnl": 0.027486910994764458,
+          "median_pnl": 0.0,
+          "win_rate": 2.5,
+          "trade_count": 2,
+          "avg_trades_per_market": 0.025,
+          "max_drawdown": 0.7853403141361355,
+          "profit_factor": Infinity,
+          "sharpe_like": 0.1601281538050873
+        }
+      },
+      "top": [
+        {
+          "params": {
+            "accel_min": 0.001,
+            "bid_min": 0.94,
+            "early_pct": 0.2,
+            "flip_rate_cap_60s": 0.18,
+            "late_pct": 0.3,
+            "late_seconds": 12,
+            "momentum_gap_min": 0.01,
+            "spread_max": 0.015,
+            "strength_min": 0.04,
+            "vol_cap_60s": 0.04
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 2.1989528795811566,
+            "avg_pnl": 0.027486910994764458,
+            "median_pnl": 0.0,
+            "win_rate": 2.5,
+            "trade_count": 2,
+            "avg_trades_per_market": 0.025,
+            "max_drawdown": 0.7853403141361355,
+            "profit_factor": Infinity,
+            "sharpe_like": 0.1601281538050873
+          }
+        },
+        {
+          "params": {
+            "accel_min": 0.001,
+            "bid_min": 0.94,
+            "early_pct": 0.2,
+            "flip_rate_cap_60s": 0.18,
+            "late_pct": 0.3,
+            "late_seconds": 12,
+            "momentum_gap_min": 0.01,
+            "spread_max": 0.015,
+            "strength_min": 0.06,
+            "vol_cap_60s": 0.04
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 2.1989528795811566,
+            "avg_pnl": 0.027486910994764458,
+            "median_pnl": 0.0,
+            "win_rate": 2.5,
+            "trade_count": 2,
+            "avg_trades_per_market": 0.025,
+            "max_drawdown": 0.7853403141361355,
+            "profit_factor": Infinity,
+            "sharpe_like": 0.1601281538050873
+          }
+        },
+        {
+          "params": {
+            "accel_min": 0.001,
+            "bid_min": 0.94,
+            "early_pct": 0.2,
+            "flip_rate_cap_60s": 0.18,
+            "late_pct": 0.3,
+            "late_seconds": 12,
+            "momentum_gap_min": 0.01,
+            "spread_max": 0.015,
+            "strength_min": 0.08,
+            "vol_cap_60s": 0.04
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 2.1989528795811566,
+            "avg_pnl": 0.027486910994764458,
+            "median_pnl": 0.0,
+            "win_rate": 2.5,
+            "trade_count": 2,
+            "avg_trades_per_market": 0.025,
+            "max_drawdown": 0.7853403141361355,
+            "profit_factor": Infinity,
+            "sharpe_like": 0.1601281538050873
+          }
+        },
+        {
+          "params": {
+            "accel_min": 0.001,
+            "bid_min": 0.94,
+            "early_pct": 0.2,
+            "flip_rate_cap_60s": 0.18,
+            "late_pct": 0.3,
+            "late_seconds": 8,
+            "momentum_gap_min": 0.01,
+            "spread_max": 0.015,
+            "strength_min": 0.04,
+            "vol_cap_60s": 0.02
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 1.0994764397905783,
+            "avg_pnl": 0.013743455497382229,
+            "median_pnl": 0.0,
+            "win_rate": 1.25,
+            "trade_count": 1,
+            "avg_trades_per_market": 0.0125,
+            "max_drawdown": 0.7853403141361355,
+            "profit_factor": Infinity,
+            "sharpe_like": 0.11250879009260231
+          }
+        },
+        {
+          "params": {
+            "accel_min": 0.001,
+            "bid_min": 0.94,
+            "early_pct": 0.2,
+            "flip_rate_cap_60s": 0.18,
+            "late_pct": 0.3,
+            "late_seconds": 8,
+            "momentum_gap_min": 0.01,
+            "spread_max": 0.015,
+            "strength_min": 0.04,
+            "vol_cap_60s": 0.03
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 1.0994764397905783,
+            "avg_pnl": 0.013743455497382229,
+            "median_pnl": 0.0,
+            "win_rate": 1.25,
+            "trade_count": 1,
+            "avg_trades_per_market": 0.0125,
+            "max_drawdown": 0.7853403141361355,
+            "profit_factor": Infinity,
+            "sharpe_like": 0.11250879009260231
+          }
+        }
+      ]
+    },
+    "strategies/ml_late_profit.py": {
+      "grid_file": "backtester/grids/ml_late_profit_fast.json",
+      "total_combos_tested": 180,
+      "best": {
+        "params": {
+          "base_size": 0.15,
+          "ev_threshold": 0.0,
+          "exit_time_cutoff_s": 2,
+          "flip_rate_cap_30": 0.3,
+          "jump_cap": 0.02,
+          "min_hold_s": 1,
+          "spread_cap": 0.03,
+          "take_profit_cents": 0.035,
+          "trailing_drop_cents": 0.015,
+          "vol_cap_30": 0.04
+        },
+        "stats": {
+          "markets": 80,
+          "total_pnl": 15.835214819533647,
+          "avg_pnl": 0.1979401852441706,
+          "median_pnl": 0.0,
+          "win_rate": 37.5,
+          "trade_count": 120,
+          "avg_trades_per_market": 1.5,
+          "max_drawdown": 3.134328358208947,
+          "profit_factor": 2.1626878909896052,
+          "sharpe_like": 0.23299781671474293
+        }
+      },
+      "top": [
+        {
+          "params": {
+            "base_size": 0.15,
+            "ev_threshold": 0.0,
+            "exit_time_cutoff_s": 2,
+            "flip_rate_cap_30": 0.3,
+            "jump_cap": 0.02,
+            "min_hold_s": 1,
+            "spread_cap": 0.03,
+            "take_profit_cents": 0.035,
+            "trailing_drop_cents": 0.015,
+            "vol_cap_30": 0.04
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 15.835214819533647,
+            "avg_pnl": 0.1979401852441706,
+            "median_pnl": 0.0,
+            "win_rate": 37.5,
+            "trade_count": 120,
+            "avg_trades_per_market": 1.5,
+            "max_drawdown": 3.134328358208947,
+            "profit_factor": 2.1626878909896052,
+            "sharpe_like": 0.23299781671474293
+          }
+        },
+        {
+          "params": {
+            "base_size": 0.15,
+            "ev_threshold": 0.0,
+            "exit_time_cutoff_s": 2,
+            "flip_rate_cap_30": 0.3,
+            "jump_cap": 0.02,
+            "min_hold_s": 1,
+            "spread_cap": 0.03,
+            "take_profit_cents": 0.03,
+            "trailing_drop_cents": 0.015,
+            "vol_cap_30": 0.04
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 15.736775324972953,
+            "avg_pnl": 0.19670969156216192,
+            "median_pnl": 0.0,
+            "win_rate": 37.5,
+            "trade_count": 120,
+            "avg_trades_per_market": 1.5,
+            "max_drawdown": 3.134328358208947,
+            "profit_factor": 2.1554600504061185,
+            "sharpe_like": 0.23302820955276907
+          }
+        },
+        {
+          "params": {
+            "base_size": 0.15,
+            "ev_threshold": 0.0,
+            "exit_time_cutoff_s": 2,
+            "flip_rate_cap_30": 0.3,
+            "jump_cap": 0.02,
+            "min_hold_s": 1,
+            "spread_cap": 0.03,
+            "take_profit_cents": 0.02,
+            "trailing_drop_cents": 0.015,
+            "vol_cap_30": 0.04
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 15.597651466268829,
+            "avg_pnl": 0.19497064332836037,
+            "median_pnl": 0.0,
+            "win_rate": 37.5,
+            "trade_count": 120,
+            "avg_trades_per_market": 1.5,
+            "max_drawdown": 3.134328358208947,
+            "profit_factor": 2.145244993161458,
+            "sharpe_like": 0.23432777183606485
+          }
+        },
+        {
+          "params": {
+            "base_size": 0.15,
+            "ev_threshold": 0.0,
+            "exit_time_cutoff_s": 2,
+            "flip_rate_cap_30": 0.3,
+            "jump_cap": 0.02,
+            "min_hold_s": 1,
+            "spread_cap": 0.02,
+            "take_profit_cents": 0.02,
+            "trailing_drop_cents": 0.015,
+            "vol_cap_30": 0.04
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 15.507944491317119,
+            "avg_pnl": 0.19384930614146398,
+            "median_pnl": 0.0,
+            "win_rate": 33.75,
+            "trade_count": 108,
+            "avg_trades_per_market": 1.35,
+            "max_drawdown": 1.9565217391304373,
+            "profit_factor": 2.6573585663240107,
+            "sharpe_like": 0.2971223385817204
+          }
+        },
+        {
+          "params": {
+            "base_size": 0.15,
+            "ev_threshold": 0.0,
+            "exit_time_cutoff_s": 2,
+            "flip_rate_cap_30": 0.3,
+            "jump_cap": 0.02,
+            "min_hold_s": 1,
+            "spread_cap": 0.03,
+            "take_profit_cents": 0.025,
+            "trailing_drop_cents": 0.015,
+            "vol_cap_30": 0.04
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 15.428974364290355,
+            "avg_pnl": 0.19286217955362944,
+            "median_pnl": 0.0,
+            "win_rate": 37.5,
+            "trade_count": 120,
+            "avg_trades_per_market": 1.5,
+            "max_drawdown": 3.134328358208947,
+            "profit_factor": 2.132860012838004,
+            "sharpe_like": 0.2307051973723429
+          }
+        }
+      ]
+    },
+    "strategies/ml_late_profit_no_safe.py": {
+      "grid_file": "backtester/grids/ml_late_profit_fast.json",
+      "total_combos_tested": 180,
+      "best": {
+        "params": {
+          "base_size": 0.15,
+          "ev_threshold": 0.0,
+          "exit_time_cutoff_s": 2,
+          "flip_rate_cap_30": 0.3,
+          "jump_cap": 0.02,
+          "min_hold_s": 1,
+          "spread_cap": 0.02,
+          "take_profit_cents": 0.015,
+          "trailing_drop_cents": 0.015,
+          "vol_cap_30": 0.04
+        },
+        "stats": {
+          "markets": 80,
+          "total_pnl": 7.051016312331811,
+          "avg_pnl": 0.08813770390414763,
+          "median_pnl": 0.0,
+          "win_rate": 36.25,
+          "trade_count": 148,
+          "avg_trades_per_market": 1.85,
+          "max_drawdown": 6.785714285714292,
+          "profit_factor": 1.3757704986011334,
+          "sharpe_like": 0.09729367084873831
+        }
+      },
+      "top": [
+        {
+          "params": {
+            "base_size": 0.15,
+            "ev_threshold": 0.0,
+            "exit_time_cutoff_s": 2,
+            "flip_rate_cap_30": 0.3,
+            "jump_cap": 0.02,
+            "min_hold_s": 1,
+            "spread_cap": 0.02,
+            "take_profit_cents": 0.015,
+            "trailing_drop_cents": 0.015,
+            "vol_cap_30": 0.04
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 7.051016312331811,
+            "avg_pnl": 0.08813770390414763,
+            "median_pnl": 0.0,
+            "win_rate": 36.25,
+            "trade_count": 148,
+            "avg_trades_per_market": 1.85,
+            "max_drawdown": 6.785714285714292,
+            "profit_factor": 1.3757704986011334,
+            "sharpe_like": 0.09729367084873831
+          }
+        },
+        {
+          "params": {
+            "base_size": 0.15,
+            "ev_threshold": 0.0,
+            "exit_time_cutoff_s": 2,
+            "flip_rate_cap_30": 0.3,
+            "jump_cap": 0.02,
+            "min_hold_s": 1,
+            "spread_cap": 0.02,
+            "take_profit_cents": 0.015,
+            "trailing_drop_cents": 0.015,
+            "vol_cap_30": 0.06
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 7.051016312331811,
+            "avg_pnl": 0.08813770390414763,
+            "median_pnl": 0.0,
+            "win_rate": 36.25,
+            "trade_count": 148,
+            "avg_trades_per_market": 1.85,
+            "max_drawdown": 6.785714285714292,
+            "profit_factor": 1.3757704986011334,
+            "sharpe_like": 0.09729367084873831
+          }
+        },
+        {
+          "params": {
+            "base_size": 0.15,
+            "ev_threshold": 0.0,
+            "exit_time_cutoff_s": 2,
+            "flip_rate_cap_30": 0.3,
+            "jump_cap": 0.02,
+            "min_hold_s": 1,
+            "spread_cap": 0.02,
+            "take_profit_cents": 0.015,
+            "trailing_drop_cents": 0.015,
+            "vol_cap_30": 0.08
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 7.051016312331811,
+            "avg_pnl": 0.08813770390414763,
+            "median_pnl": 0.0,
+            "win_rate": 36.25,
+            "trade_count": 148,
+            "avg_trades_per_market": 1.85,
+            "max_drawdown": 6.785714285714292,
+            "profit_factor": 1.3757704986011334,
+            "sharpe_like": 0.09729367084873831
+          }
+        },
+        {
+          "params": {
+            "base_size": 0.15,
+            "ev_threshold": 0.0,
+            "exit_time_cutoff_s": 2,
+            "flip_rate_cap_30": 0.3,
+            "jump_cap": 0.02,
+            "min_hold_s": 1,
+            "spread_cap": 0.03,
+            "take_profit_cents": 0.015,
+            "trailing_drop_cents": 0.015,
+            "vol_cap_30": 0.04
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 7.051016312331811,
+            "avg_pnl": 0.08813770390414763,
+            "median_pnl": 0.0,
+            "win_rate": 36.25,
+            "trade_count": 148,
+            "avg_trades_per_market": 1.85,
+            "max_drawdown": 6.785714285714292,
+            "profit_factor": 1.3757704986011334,
+            "sharpe_like": 0.09729367084873831
+          }
+        },
+        {
+          "params": {
+            "base_size": 0.15,
+            "ev_threshold": 0.0,
+            "exit_time_cutoff_s": 2,
+            "flip_rate_cap_30": 0.3,
+            "jump_cap": 0.02,
+            "min_hold_s": 1,
+            "spread_cap": 0.03,
+            "take_profit_cents": 0.015,
+            "trailing_drop_cents": 0.015,
+            "vol_cap_30": 0.06
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 7.051016312331811,
+            "avg_pnl": 0.08813770390414763,
+            "median_pnl": 0.0,
+            "win_rate": 36.25,
+            "trade_count": 148,
+            "avg_trades_per_market": 1.85,
+            "max_drawdown": 6.785714285714292,
+            "profit_factor": 1.3757704986011334,
+            "sharpe_like": 0.09729367084873831
+          }
+        }
+      ]
+    },
+    "strategies/always_down_tp_sl.py": {
+      "grid_file": "backtester/grids/always_down_tp_sl_fast.json",
+      "total_combos_tested": 180,
+      "best": {
+        "params": {
+          "bet_usd": 8.0,
+          "entry_price_max": 0.4,
+          "entry_window_high_s": 45,
+          "entry_window_low_s": 20,
+          "force_exit_s": 2,
+          "max_hold_s": 20,
+          "min_hold_s": 1,
+          "stop_loss_cents": 0.015,
+          "sum_asks_max": 1.02,
+          "take_profit_cents": 0.015,
+          "trailing_drop_cents": 0.015
+        },
+        "stats": {
+          "markets": 80,
+          "total_pnl": 285.513106720617,
+          "avg_pnl": 3.568913834007712,
+          "median_pnl": 0.0,
+          "win_rate": 43.75,
+          "trade_count": 970,
+          "avg_trades_per_market": 12.125,
+          "max_drawdown": 11.1111111111111,
+          "profit_factor": 11.181358217901279,
+          "sharpe_like": 0.47392420531991736
+        }
+      },
+      "top": [
+        {
+          "params": {
+            "bet_usd": 8.0,
+            "entry_price_max": 0.4,
+            "entry_window_high_s": 45,
+            "entry_window_low_s": 20,
+            "force_exit_s": 2,
+            "max_hold_s": 20,
+            "min_hold_s": 1,
+            "stop_loss_cents": 0.015,
+            "sum_asks_max": 1.02,
+            "take_profit_cents": 0.015,
+            "trailing_drop_cents": 0.015
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 285.513106720617,
+            "avg_pnl": 3.568913834007712,
+            "median_pnl": 0.0,
+            "win_rate": 43.75,
+            "trade_count": 970,
+            "avg_trades_per_market": 12.125,
+            "max_drawdown": 11.1111111111111,
+            "profit_factor": 11.181358217901279,
+            "sharpe_like": 0.47392420531991736
+          }
+        },
+        {
+          "params": {
+            "bet_usd": 8.0,
+            "entry_price_max": 0.4,
+            "entry_window_high_s": 45,
+            "entry_window_low_s": 20,
+            "force_exit_s": 2,
+            "max_hold_s": 20,
+            "min_hold_s": 1,
+            "stop_loss_cents": 0.015,
+            "sum_asks_max": 1.02,
+            "take_profit_cents": 0.015,
+            "trailing_drop_cents": 0.012
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 284.58538467913155,
+            "avg_pnl": 3.5573173084891443,
+            "median_pnl": 0.0,
+            "win_rate": 43.75,
+            "trade_count": 984,
+            "avg_trades_per_market": 12.3,
+            "max_drawdown": 11.1111111111111,
+            "profit_factor": 11.725110903115265,
+            "sharpe_like": 0.4775549107628476
+          }
+        },
+        {
+          "params": {
+            "bet_usd": 8.0,
+            "entry_price_max": 0.4,
+            "entry_window_high_s": 45,
+            "entry_window_low_s": 20,
+            "force_exit_s": 2,
+            "max_hold_s": 20,
+            "min_hold_s": 1,
+            "stop_loss_cents": 0.01,
+            "sum_asks_max": 1.02,
+            "take_profit_cents": 0.015,
+            "trailing_drop_cents": 0.01
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 275.6586752773039,
+            "avg_pnl": 3.445733440966299,
+            "median_pnl": 0.0,
+            "win_rate": 45.0,
+            "trade_count": 1050,
+            "avg_trades_per_market": 13.125,
+            "max_drawdown": 11.1111111111111,
+            "profit_factor": 12.889981202780659,
+            "sharpe_like": 0.48353163121150355
+          }
+        },
+        {
+          "params": {
+            "bet_usd": 8.0,
+            "entry_price_max": 0.4,
+            "entry_window_high_s": 45,
+            "entry_window_low_s": 20,
+            "force_exit_s": 2,
+            "max_hold_s": 20,
+            "min_hold_s": 1,
+            "stop_loss_cents": 0.015,
+            "sum_asks_max": 1.02,
+            "take_profit_cents": 0.015,
+            "trailing_drop_cents": 0.01
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 275.6586752773039,
+            "avg_pnl": 3.445733440966299,
+            "median_pnl": 0.0,
+            "win_rate": 45.0,
+            "trade_count": 1050,
+            "avg_trades_per_market": 13.125,
+            "max_drawdown": 11.1111111111111,
+            "profit_factor": 12.889981202780659,
+            "sharpe_like": 0.48353163121150355
+          }
+        },
+        {
+          "params": {
+            "bet_usd": 8.0,
+            "entry_price_max": 0.4,
+            "entry_window_high_s": 45,
+            "entry_window_low_s": 20,
+            "force_exit_s": 2,
+            "max_hold_s": 20,
+            "min_hold_s": 1,
+            "stop_loss_cents": 0.01,
+            "sum_asks_max": 1.02,
+            "take_profit_cents": 0.02,
+            "trailing_drop_cents": 0.01
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 274.05344420443316,
+            "avg_pnl": 3.4256680525554146,
+            "median_pnl": 0.0,
+            "win_rate": 43.75,
+            "trade_count": 1046,
+            "avg_trades_per_market": 13.075,
+            "max_drawdown": 12.460173160173156,
+            "profit_factor": 12.198602537581994,
+            "sharpe_like": 0.4816484681983073
+          }
+        }
+      ]
+    },
+    "strategies/_aggressive_reversal.py": {
+      "grid_file": "backtester/grids/aggressive_reversal_v2_fast.json",
+      "total_combos_tested": 180,
+      "best": {
+        "params": {
+          "bet_pct": 0.12,
+          "cooldown_s": 1,
+          "extreme_gap": 0.012,
+          "jump_cap": 0.015,
+          "max_hold_s": 8,
+          "max_spread": 0.02,
+          "min_reversal": 0.002,
+          "sl_move": 0.006,
+          "tp_move": 0.012,
+          "vol_cap_60s": 0.03,
+          "window_high": 85,
+          "window_low": 6
+        },
+        "stats": {
+          "markets": 80,
+          "total_pnl": 10.031003692440635,
+          "avg_pnl": 0.12538754615550793,
+          "median_pnl": 0.0,
+          "win_rate": 12.5,
+          "trade_count": 55,
+          "avg_trades_per_market": 0.6875,
+          "max_drawdown": 11.89333333333333,
+          "profit_factor": 2.254780608601534,
+          "sharpe_like": 0.1195099292987387
+        }
+      },
+      "top": [
+        {
+          "params": {
+            "bet_pct": 0.12,
+            "cooldown_s": 1,
+            "extreme_gap": 0.012,
+            "jump_cap": 0.015,
+            "max_hold_s": 8,
+            "max_spread": 0.02,
+            "min_reversal": 0.002,
+            "sl_move": 0.006,
+            "tp_move": 0.012,
+            "vol_cap_60s": 0.03,
+            "window_high": 85,
+            "window_low": 6
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 10.031003692440635,
+            "avg_pnl": 0.12538754615550793,
+            "median_pnl": 0.0,
+            "win_rate": 12.5,
+            "trade_count": 55,
+            "avg_trades_per_market": 0.6875,
+            "max_drawdown": 11.89333333333333,
+            "profit_factor": 2.254780608601534,
+            "sharpe_like": 0.1195099292987387
+          }
+        },
+        {
+          "params": {
+            "bet_pct": 0.12,
+            "cooldown_s": 1,
+            "extreme_gap": 0.012,
+            "jump_cap": 0.015,
+            "max_hold_s": 8,
+            "max_spread": 0.02,
+            "min_reversal": 0.002,
+            "sl_move": 0.008,
+            "tp_move": 0.012,
+            "vol_cap_60s": 0.03,
+            "window_high": 85,
+            "window_low": 6
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 10.031003692440635,
+            "avg_pnl": 0.12538754615550793,
+            "median_pnl": 0.0,
+            "win_rate": 12.5,
+            "trade_count": 55,
+            "avg_trades_per_market": 0.6875,
+            "max_drawdown": 11.89333333333333,
+            "profit_factor": 2.254780608601534,
+            "sharpe_like": 0.1195099292987387
+          }
+        },
+        {
+          "params": {
+            "bet_pct": 0.12,
+            "cooldown_s": 1,
+            "extreme_gap": 0.012,
+            "jump_cap": 0.015,
+            "max_hold_s": 8,
+            "max_spread": 0.02,
+            "min_reversal": 0.002,
+            "sl_move": 0.006,
+            "tp_move": 0.008,
+            "vol_cap_60s": 0.03,
+            "window_high": 85,
+            "window_low": 6
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 8.692346818597514,
+            "avg_pnl": 0.10865433523246892,
+            "median_pnl": 0.0,
+            "win_rate": 12.5,
+            "trade_count": 55,
+            "avg_trades_per_market": 0.6875,
+            "max_drawdown": 11.89333333333333,
+            "profit_factor": 2.0653484139901654,
+            "sharpe_like": 0.10509845168644102
+          }
+        },
+        {
+          "params": {
+            "bet_pct": 0.12,
+            "cooldown_s": 1,
+            "extreme_gap": 0.012,
+            "jump_cap": 0.015,
+            "max_hold_s": 8,
+            "max_spread": 0.02,
+            "min_reversal": 0.002,
+            "sl_move": 0.008,
+            "tp_move": 0.008,
+            "vol_cap_60s": 0.03,
+            "window_high": 85,
+            "window_low": 6
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 8.692346818597514,
+            "avg_pnl": 0.10865433523246892,
+            "median_pnl": 0.0,
+            "win_rate": 12.5,
+            "trade_count": 55,
+            "avg_trades_per_market": 0.6875,
+            "max_drawdown": 11.89333333333333,
+            "profit_factor": 2.0653484139901654,
+            "sharpe_like": 0.10509845168644102
+          }
+        },
+        {
+          "params": {
+            "bet_pct": 0.12,
+            "cooldown_s": 1,
+            "extreme_gap": 0.012,
+            "jump_cap": 0.015,
+            "max_hold_s": 8,
+            "max_spread": 0.02,
+            "min_reversal": 0.002,
+            "sl_move": 0.01,
+            "tp_move": 0.008,
+            "vol_cap_60s": 0.03,
+            "window_high": 85,
+            "window_low": 6
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 8.692346818597514,
+            "avg_pnl": 0.10865433523246892,
+            "median_pnl": 0.0,
+            "win_rate": 12.5,
+            "trade_count": 55,
+            "avg_trades_per_market": 0.6875,
+            "max_drawdown": 11.89333333333333,
+            "profit_factor": 2.0653484139901654,
+            "sharpe_like": 0.10509845168644102
+          }
+        }
+      ]
+    },
+    "strategies/_active_momentum_reversal.py": {
+      "grid_file": "backtester/grids/active_momentum_reversal_fast.json",
+      "total_combos_tested": 180,
+      "best": {
+        "params": {
+          "bet_pct": 0.2,
+          "cooldown_s": 1,
+          "entry_gap": 0.003,
+          "flip_gap": 0.001,
+          "long_n": 18,
+          "max_hold_s": 10,
+          "short_n": 5,
+          "sl_move": 0.006,
+          "spread_cap": 0.04,
+          "strength_min": 0.004,
+          "tp_move": 0.016,
+          "window_high_s": 120,
+          "window_low_s": 4
+        },
+        "stats": {
+          "markets": 80,
+          "total_pnl": 196.12303694204252,
+          "avg_pnl": 2.4515379617755313,
+          "median_pnl": 4.6224831196122125,
+          "win_rate": 71.25,
+          "trade_count": 6208,
+          "avg_trades_per_market": 77.6,
+          "max_drawdown": 29.34998964877984,
+          "profit_factor": 1.9464412144249694,
+          "sharpe_like": 0.2586633531471858
+        }
+      },
+      "top": [
+        {
+          "params": {
+            "bet_pct": 0.2,
+            "cooldown_s": 1,
+            "entry_gap": 0.003,
+            "flip_gap": 0.001,
+            "long_n": 18,
+            "max_hold_s": 10,
+            "short_n": 5,
+            "sl_move": 0.006,
+            "spread_cap": 0.04,
+            "strength_min": 0.004,
+            "tp_move": 0.016,
+            "window_high_s": 120,
+            "window_low_s": 4
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 196.12303694204252,
+            "avg_pnl": 2.4515379617755313,
+            "median_pnl": 4.6224831196122125,
+            "win_rate": 71.25,
+            "trade_count": 6208,
+            "avg_trades_per_market": 77.6,
+            "max_drawdown": 29.34998964877984,
+            "profit_factor": 1.9464412144249694,
+            "sharpe_like": 0.2586633531471858
+          }
+        },
+        {
+          "params": {
+            "bet_pct": 0.2,
+            "cooldown_s": 1,
+            "entry_gap": 0.003,
+            "flip_gap": 0.001,
+            "long_n": 18,
+            "max_hold_s": 10,
+            "short_n": 5,
+            "sl_move": 0.006,
+            "spread_cap": 0.04,
+            "strength_min": 0.006,
+            "tp_move": 0.016,
+            "window_high_s": 120,
+            "window_low_s": 4
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 196.12303694204252,
+            "avg_pnl": 2.4515379617755313,
+            "median_pnl": 4.6224831196122125,
+            "win_rate": 71.25,
+            "trade_count": 6208,
+            "avg_trades_per_market": 77.6,
+            "max_drawdown": 29.34998964877984,
+            "profit_factor": 1.9464412144249694,
+            "sharpe_like": 0.2586633531471858
+          }
+        },
+        {
+          "params": {
+            "bet_pct": 0.2,
+            "cooldown_s": 1,
+            "entry_gap": 0.003,
+            "flip_gap": 0.001,
+            "long_n": 18,
+            "max_hold_s": 10,
+            "short_n": 5,
+            "sl_move": 0.006,
+            "spread_cap": 0.04,
+            "strength_min": 0.01,
+            "tp_move": 0.016,
+            "window_high_s": 120,
+            "window_low_s": 4
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 196.12303694204252,
+            "avg_pnl": 2.4515379617755313,
+            "median_pnl": 4.6224831196122125,
+            "win_rate": 71.25,
+            "trade_count": 6208,
+            "avg_trades_per_market": 77.6,
+            "max_drawdown": 29.34998964877984,
+            "profit_factor": 1.9464412144249694,
+            "sharpe_like": 0.2586633531471858
+          }
+        },
+        {
+          "params": {
+            "bet_pct": 0.2,
+            "cooldown_s": 1,
+            "entry_gap": 0.003,
+            "flip_gap": 0.001,
+            "long_n": 18,
+            "max_hold_s": 10,
+            "short_n": 5,
+            "sl_move": 0.006,
+            "spread_cap": 0.05,
+            "strength_min": 0.004,
+            "tp_move": 0.016,
+            "window_high_s": 120,
+            "window_low_s": 4
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 144.84899382521348,
+            "avg_pnl": 1.8106124228151685,
+            "median_pnl": 2.870284180519377,
+            "win_rate": 68.75,
+            "trade_count": 6696,
+            "avg_trades_per_market": 83.7,
+            "max_drawdown": 28.839729985647068,
+            "profit_factor": 1.69989209043474,
+            "sharpe_like": 0.20399474134207943
+          }
+        },
+        {
+          "params": {
+            "bet_pct": 0.2,
+            "cooldown_s": 1,
+            "entry_gap": 0.003,
+            "flip_gap": 0.001,
+            "long_n": 18,
+            "max_hold_s": 10,
+            "short_n": 5,
+            "sl_move": 0.006,
+            "spread_cap": 0.05,
+            "strength_min": 0.006,
+            "tp_move": 0.016,
+            "window_high_s": 120,
+            "window_low_s": 4
+          },
+          "stats": {
+            "markets": 80,
+            "total_pnl": 144.84899382521348,
+            "avg_pnl": 1.8106124228151685,
+            "median_pnl": 2.870284180519377,
+            "win_rate": 68.75,
+            "trade_count": 6696,
+            "avg_trades_per_market": 83.7,
+            "max_drawdown": 28.839729985647068,
+            "profit_factor": 1.69989209043474,
+            "sharpe_like": 0.20399474134207943
+          }
+        }
+      ]
+    }
+  },
+  "ranked_by_total_pnl": [
+    {
+      "strategy_file": "strategies/always_down_tp_sl.py",
+      "total_pnl": 285.513106720617,
+      "avg_pnl": 3.568913834007712,
+      "win_rate": 43.75,
+      "trade_count": 970,
+      "max_drawdown": 11.1111111111111
+    },
+    {
+      "strategy_file": "strategies/_active_momentum_reversal.py",
+      "total_pnl": 196.12303694204252,
+      "avg_pnl": 2.4515379617755313,
+      "win_rate": 71.25,
+      "trade_count": 6208,
+      "max_drawdown": 29.34998964877984
+    },
+    {
+      "strategy_file": "strategies/aggressive_breakout.py",
+      "total_pnl": 112.55542577599111,
+      "avg_pnl": 1.406942822199889,
+      "win_rate": 46.25,
+      "trade_count": 38,
+      "max_drawdown": 34.37869822485207
+    },
+    {
+      "strategy_file": "strategies/late_flip_hunter.py",
+      "total_pnl": 27.030148376140204,
+      "avg_pnl": 0.33787685470175255,
+      "win_rate": 12.5,
+      "trade_count": 13,
+      "max_drawdown": 25.055999999999997
+    },
+    {
+      "strategy_file": "strategies/mean_reversion.py",
+      "total_pnl": 26.638143385004696,
+      "avg_pnl": 0.3329767923125587,
+      "win_rate": 7.5,
+      "trade_count": 7,
+      "max_drawdown": 23.55263157894737
+    },
+    {
+      "strategy_file": "strategies/ml_late_profit.py",
+      "total_pnl": 15.835214819533647,
+      "avg_pnl": 0.1979401852441706,
+      "win_rate": 37.5,
+      "trade_count": 120,
+      "max_drawdown": 3.134328358208947
+    },
+    {
+      "strategy_file": "strategies/_aggressive_reversal.py",
+      "total_pnl": 10.031003692440635,
+      "avg_pnl": 0.12538754615550793,
+      "win_rate": 12.5,
+      "trade_count": 55,
+      "max_drawdown": 11.89333333333333
+    },
+    {
+      "strategy_file": "strategies/ml_late_profit_no_safe.py",
+      "total_pnl": 7.051016312331811,
+      "avg_pnl": 0.08813770390414763,
+      "win_rate": 36.25,
+      "trade_count": 148,
+      "max_drawdown": 6.785714285714292
+    },
+    {
+      "strategy_file": "strategies/momentum.py",
+      "total_pnl": 2.1989528795811566,
+      "avg_pnl": 0.027486910994764458,
+      "win_rate": 2.5,
+      "trade_count": 2,
+      "max_drawdown": 0.7853403141361355
+    },
+    {
+      "strategy_file": "strategies/active_pair_scalper.py",
+      "total_pnl": 0.0,
+      "avg_pnl": 0.0,
+      "win_rate": 0.0,
+      "trade_count": 0,
+      "max_drawdown": 0.0
+    },
+    {
+      "strategy_file": "strategies/active_pair_ladder.py",
+      "total_pnl": 0.0,
+      "avg_pnl": 0.0,
+      "win_rate": 0.0,
+      "trade_count": 0,
+      "max_drawdown": 0.0
+    }
+  ]
+}

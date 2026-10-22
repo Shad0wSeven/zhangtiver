@@ -1,0 +1,47 @@
+{
+  "paths": [
+    "data/btc_5m_prices_archive_q1s.jsonl",
+    "data/btc_5m_prices_q1s.jsonl",
+    "data/btc_1s_prices.jsonl",
+    "data/btc_1s_pricesv2.jsonl",
+    "data/btc_1s_pricesv3.jsonl"
+  ],
+  "samples_total": 13399,
+  "train_samples": 7582,
+  "holdout_samples": 5817,
+  "train_loss_by_epoch": [
+    1.0702974060788628,
+    0.928116488962996,
+    0.8860115656215011,
+    0.8668633465463773,
+    0.8439078648591601,
+    0.8354806548622723,
+    0.8158214323063445,
+    0.812837987344204
+  ],
+  "selected_threshold_by_train_f1": {
+    "threshold": 0.65,
+    "samples": 7582.0,
+    "positive_rate": 0.19849643893431812,
+    "accuracy": 0.7334476391453443,
+    "precision": 0.4103544127866574,
+    "recall": 0.7847176079734219,
+    "f1": 0.538900296600502,
+    "tp": 1181.0,
+    "fp": 1697.0,
+    "tn": 4380.0,
+    "fn": 324.0
+  },
+  "holdout_stats_at_selected_threshold": {
+    "samples": 5817.0,
+    "positive_rate": 0.41774110366168127,
+    "accuracy": 0.5538937596699329,
+    "precision": 0.4744819053510671,
+    "recall": 0.6312757201646091,
+    "f1": 0.5417623167932192,
+    "tp": 1534.0,
+    "fp": 1699.0,
+    "tn": 1688.0,
+    "fn": 896.0
+  }
+}

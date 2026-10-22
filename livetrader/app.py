@@ -30,6 +30,7 @@ UI_STATE_INTERVAL_S = 1.0
 TICK_COALESCE_BACKLOG = 25
 WINDOW_START_CASH = 100.0
 DEFAULT_BET_USD = 10.0
+FEE_MODEL = "polymarket_table"
 
 
 INDEX_HTML = """<!doctype html>
@@ -292,6 +293,7 @@ Current Window: <span class="${cls(s.current_window_pnl)}">$${fmt(s.current_wind
 Unrealized: <span class="${cls(s.unrealized_pnl)}">$${fmt(s.unrealized_pnl, 2)}</span>
 Cash: $${fmt(s.cash, 2)}
 Window Buy Flow: $${fmt(s.window_buy_notional, 2)} | Sell Flow: $${fmt(s.window_sell_notional, 2)}
+Fees (window/session): $${fmt(s.window_fees, 2)} / $${fmt(s.session_fees, 2)}
 Window Capital Used: ${fmt(s.window_deployed_pct, 1)}% of $${fmt(s.window_start_cash, 0)}
 Open UP: ${fmt(s.position_up, 2)} (avg $${fmt(s.avg_up_value, 4)}, value $${fmt(s.open_up_value, 2)})
 Open DOWN: ${fmt(s.position_down, 2)} (avg $${fmt(s.avg_down_value, 4)}, value $${fmt(s.open_down_value, 2)})
@@ -300,6 +302,7 @@ Avg Profit/Trade: <span class="${cls(s.avg_profit_per_trade)}">$${fmt(s.avg_prof
 Avg Entry (all/win/loss): $${fmt(s.avg_entry_price, 4)} / $${fmt(s.avg_win_entry_price, 4)} / $${fmt(s.avg_loss_entry_price, 4)}
 Avg Profit/Session: <span class="${cls(s.avg_profit_per_session)}">$${fmt(s.avg_profit_per_session, 4)}</span> (${s.closed_windows} closed)
 Comment: ${s.last_comment || "-"}
+Limits: ${s.limit_debug || "-"}
           </div>`;
         cardsEl.appendChild(div);
       }
@@ -454,16 +457,17 @@ Comment: ${s.last_comment || "-"}
         div.classList.add("sys");
         left.innerHTML = `${ts}${evt.message}`;
       } else if (evt.type === "trade") {
+        const feeTxt = ` fee=${fmt(evt.fee, 4)}`;
         if (evt.side === "buy") {
           div.classList.add("buy");
           div.style.background = evt.color;
-          left.innerHTML = `${ts}BUY ${evt.strategy} ${evt.token.toUpperCase()} x${fmt(evt.size, 2)} @ ${fmt(evt.price)} | ${evt.comment || ""}`;
+          left.innerHTML = `${ts}BUY ${evt.strategy} ${evt.token.toUpperCase()} x${fmt(evt.size, 2)} @ ${fmt(evt.price)}${feeTxt} | ${evt.comment || ""}`;
         } else {
           div.classList.add("sell");
           div.style.color = evt.color;
           if (evt.token === "up") div.classList.add("sold-up");
           if (evt.token === "down") div.classList.add("sold-down");
-          left.innerHTML = `${ts}SELL ${evt.strategy} ${evt.token.toUpperCase()} x${fmt(evt.size, 2)} @ ${fmt(evt.price)} | ${evt.comment || ""}`;
+          left.innerHTML = `${ts}SELL ${evt.strategy} ${evt.token.toUpperCase()} x${fmt(evt.size, 2)} @ ${fmt(evt.price)}${feeTxt} | ${evt.comment || ""}`;
         }
       }
       div.appendChild(left);
@@ -620,8 +624,10 @@ class StrategyState:
     realized_pnl: float = 0.0
     session_realized_pnl: float = 0.0
     session_profit_closed_windows: float = 0.0
+    session_total_fees: float = 0.0
     window_buy_notional: float = 0.0
     window_sell_notional: float = 0.0
+    window_fees: float = 0.0
     last_comment: str = ""
     market_start_mtm: float = WINDOW_START_CASH
     sell_realized_pnl_sum: float = 0.0
@@ -666,6 +672,44 @@ class LiveTraderServer:
         self.dropped_ticks = 0
         self.dropped_ui_events = 0
         self.coalesced_ticks = 0
+
+    @staticmethod
+    def fee_rate(price: float) -> float:
+        if FEE_MODEL == "none":
+            return 0.0
+        table = [
+            (0.01, 0.0000),
+            (0.05, 0.0006),
+            (0.10, 0.0020),
+            (0.15, 0.0041),
+            (0.20, 0.0064),
+            (0.25, 0.0088),
+            (0.30, 0.0110),
+            (0.35, 0.0129),
+            (0.40, 0.0144),
+            (0.45, 0.0153),
+            (0.50, 0.0156),
+            (0.55, 0.0153),
+            (0.60, 0.0144),
+            (0.65, 0.0129),
+            (0.70, 0.0110),
+            (0.75, 0.0088),
+            (0.80, 0.0064),
+            (0.85, 0.0041),
+            (0.90, 0.0020),
+            (0.95, 0.0006),
+            (0.99, 0.0000),
+        ]
+        p = max(table[0][0], min(table[-1][0], float(price)))
+        for i in range(1, len(table)):
+            p0, r0 = table[i - 1]
+            p1, r1 = table[i]
+            if p <= p1:
+                if p1 <= p0:
+                    return r1
+                t = (p - p0) / (p1 - p0)
+                return r0 + t * (r1 - r0)
+        return table[-1][1]
 
     @staticmethod
     def _load_opti_src() -> str:
@@ -827,6 +871,8 @@ class LiveTraderServer:
                     "loss_sells": state.loss_sells,
                     "window_buy_notional": state.window_buy_notional,
                     "window_sell_notional": state.window_sell_notional,
+                    "window_fees": state.window_fees,
+                    "session_fees": state.session_total_fees + state.window_fees,
                     "window_deployed_pct": deployed_pct,
                     "window_start_cash": WINDOW_START_CASH,
                     "avg_profit_per_trade": avg_profit_per_trade,
@@ -836,6 +882,7 @@ class LiveTraderServer:
                     "avg_profit_per_session": avg_profit_per_session,
                     "closed_windows": state.closed_windows,
                     "last_comment": state.last_comment,
+                    "limit_debug": str(getattr(state.strategy, "limit_debug", "")),
                 }
             )
         return items
@@ -1108,6 +1155,7 @@ class LiveTraderServer:
         )
 
         if side == "buy":
+            rate = self.fee_rate(price)
             if size == 1.0:
                 notional = DEFAULT_BET_USD
             elif 0 < size < 1:
@@ -1115,17 +1163,20 @@ class LiveTraderServer:
                 notional = WINDOW_START_CASH * size
             else:
                 notional = size
-            notional = min(notional, state.cash)
+            notional = min(notional, state.cash / (1.0 + rate))
             if notional <= 0:
                 return None
+            fee = notional * rate
             qty = notional / price if price > 0 else 0.0
             if qty <= 0:
                 return None
-            state.cash -= notional
+            state.cash -= notional + fee
             state.positions[token] += qty
-            state.costs[token] += notional
+            # Include entry fee in cost basis so realized PnL reflects true cost.
+            state.costs[token] += notional + fee
             state.buys += 1
             state.window_buy_notional += notional
+            state.window_fees += fee
             size = qty
         else:
             if 0 < size <= 1:
@@ -1138,8 +1189,9 @@ class LiveTraderServer:
             prior_qty = state.positions[token]
             avg_cost = (state.costs[token] / prior_qty) if prior_qty > 0 else 0.0
             notional = price * qty
-            realized = (price - avg_cost) * qty
-            state.cash += notional
+            fee = notional * self.fee_rate(price)
+            realized = (price - avg_cost) * qty - fee
+            state.cash += notional - fee
             state.positions[token] -= qty
             state.costs[token] -= avg_cost * qty
             if state.positions[token] <= 1e-9:
@@ -1150,6 +1202,7 @@ class LiveTraderServer:
             state.session_realized_pnl += realized
             state.sell_realized_pnl_sum += realized
             state.window_sell_notional += notional
+            state.window_fees += fee
             state.entry_price_sum += avg_cost
             state.entry_price_count += 1
             if realized >= 0:
@@ -1176,6 +1229,7 @@ class LiveTraderServer:
             "size": size,
             "price": price,
             "notional": price * size,
+            "fee": fee,
             "comment": action.comment,
         }
 
@@ -1430,6 +1484,7 @@ class LiveTraderServer:
                     state.session_profit_closed_windows += (
                         state.cash - WINDOW_START_CASH
                     )
+                    state.session_total_fees += state.window_fees
                     state.closed_windows += 1
                 state.cash = WINDOW_START_CASH
                 state.positions = {"up": 0.0, "down": 0.0}
@@ -1437,6 +1492,7 @@ class LiveTraderServer:
                 state.realized_pnl = 0.0
                 state.window_buy_notional = 0.0
                 state.window_sell_notional = 0.0
+                state.window_fees = 0.0
                 state.market_start_mtm = WINDOW_START_CASH
 
             for state in self.states:

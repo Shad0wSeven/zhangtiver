@@ -4,6 +4,19 @@ import importlib.util
 from pathlib import Path
 from typing import Any
 
+DISABLED_STRATEGY_STEMS: set[str] = {
+    # Fee-fragile / holdout-negative in current data regime.
+    "active_pair_ladder",
+    "active_pair_ladder_no_safe",
+    "active_pair_scalper",
+    "active_pair_scalper_no_safe",
+    "directional_smart_profit",
+    "directional_smart_profit_hf",
+    "directional_smart_profit_lf",
+    # Keep only fee-gated/tuned ML late variant.
+    "ml_late_profit_no_safe",
+}
+
 
 def load_strategies(strategy_dir: str) -> tuple[list[Any], list[str]]:
     path = Path(strategy_dir)
@@ -15,6 +28,8 @@ def load_strategies(strategy_dir: str) -> tuple[list[Any], list[str]]:
 
     for file_path in sorted(path.glob("*.py")):
         if file_path.name.startswith("_"):
+            continue
+        if file_path.stem in DISABLED_STRATEGY_STEMS:
             continue
 
         module_name = f"livetrader_user_{file_path.stem}"

@@ -1,0 +1,15 @@
+{
+  "params": {
+    "entry_window_low_s": [20, 25, 30],
+    "entry_window_high_s": [45, 50, 55],
+    "entry_price_max": [0.4, 0.45, 0.5, 0.55, 0.6],
+    "sum_asks_max": [1.0, 1.02, 1.04, 1.06],
+    "bet_usd": [8.0, 10.0, 12.0],
+    "take_profit_cents": [0.015, 0.02, 0.025, 0.03, 0.04],
+    "stop_loss_cents": [0.01, 0.015, 0.02, 0.03],
+    "trailing_drop_cents": [0.006, 0.008, 0.01, 0.012, 0.015],
+    "min_hold_s": [1, 2],
+    "max_hold_s": [20, 30, 45, 60],
+    "force_exit_s": [2, 3, 4]
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "params": {
+    "base_size": [0.10],
+    "cooldown_s": [4, 8],
+    "entry_fee_rate_cap": [0.009, 0.011],
+    "level_bin": [0.004],
+    "lookback": [70, 90],
+    "max_entries_per_market": [1],
+    "max_price": [0.94],
+    "min_abs_from_mid": [0.16, 0.20],
+    "min_level_gap": [0.03],
+    "pivot_span": [3],
+    "touch_eps": [0.004, 0.006],
+    "window_high_s": [110],
+    "window_low_s": [8, 12],
+    "take_profit_cents": [0.03, 0.04, 0.05],
+    "stop_loss_cents": [0.015, 0.02],
+    "trailing_drop_cents": [0.010, 0.012, 0.016],
+    "min_hold_s": [2, 3, 4, 5],
+    "exit_min_abs_from_mid": [0.10, 0.12, 0.16],
+    "exit_fee_rate_cap": [0.013, 0.015]
+  }
+}

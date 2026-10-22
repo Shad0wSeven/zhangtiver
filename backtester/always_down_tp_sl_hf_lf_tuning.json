@@ -1,0 +1,68 @@
+{
+  "best_low_freq": {
+    "score": 1290.629,
+    "params": {
+      "bet_usd": 10.0,
+      "take_profit_price": 0.9,
+      "take_profit_price_cap": 0.99,
+      "take_profit_cents": 0.0,
+      "stop_loss_cents": 0.0,
+      "trailing_drop_cents": 0.0,
+      "min_hold_s": 1,
+      "max_hold_s": 120,
+      "force_exit_s": 2,
+      "entry_window_low_s": 5,
+      "entry_window_high_s": 60,
+      "entry_price_max": 0.95,
+      "sum_asks_max": 1.0,
+      "take_profit_entry_slope": 0.8,
+      "take_profit_min_gain_cents": 0.01,
+      "max_entries_per_market": 1
+    },
+    "stats": {
+      "total_pnl": 909.749039827562,
+      "avg_pnl": 11.371862997844525,
+      "win_rate": 61.25,
+      "trade_count": 152,
+      "markets": 80,
+      "max_drawdown": 63.33333333333337
+    },
+    "traded_markets": 78,
+    "coverage_pct": 97.5
+  },
+  "best_high_freq": {
+    "score": 791.9611,
+    "params": {
+      "bet_usd": 10.0,
+      "take_profit_price": 0.9,
+      "take_profit_price_cap": 0.99,
+      "take_profit_cents": 0.0,
+      "stop_loss_cents": 0.0,
+      "trailing_drop_cents": 0.0,
+      "min_hold_s": 1,
+      "max_hold_s": 90,
+      "force_exit_s": 2,
+      "entry_window_low_s": 5,
+      "entry_window_high_s": 75,
+      "entry_price_max": 0.95,
+      "sum_asks_max": 1.02,
+      "take_profit_entry_slope": 0.4,
+      "take_profit_min_gain_cents": 0.003,
+      "max_entries_per_market": 3
+    },
+    "stats": {
+      "total_pnl": 594.6810605819214,
+      "avg_pnl": 7.433513257274018,
+      "win_rate": 60.0,
+      "trade_count": 272,
+      "markets": 80,
+      "max_drawdown": 164.0
+    },
+    "traded_markets": 79,
+    "coverage_pct": 98.75
+  },
+  "search_space": {
+    "low_freq_combos": 64,
+    "high_freq_combos": 384
+  }
+}

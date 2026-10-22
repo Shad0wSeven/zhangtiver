@@ -15,6 +15,7 @@ class Trade:
     price: float
     qty: float
     notional: float
+    fee: float
     time_remaining: int
     comment: str = ""
 
@@ -27,6 +28,8 @@ class MarketResult:
     trades: int
     end_cash: float
     max_drawdown: float
+    fees: float
+    duration_s: int
 
 
 @dataclass
@@ -40,6 +43,7 @@ class StrategyState:
     costs: dict[str, float] = field(default_factory=lambda: {"up": 0.0, "down": 0.0})
     trades: list[Trade] = field(default_factory=list)
     equity_curve: list[float] = field(default_factory=list)
+    total_fees: float = 0.0
 
     def mark_to_market(self, tick: Tick) -> float:
         return (

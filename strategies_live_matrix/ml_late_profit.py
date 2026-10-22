@@ -73,21 +73,58 @@ class MLLateProfitStrategy:
         self.stds = [float(x) for x in model["stds"]]
 
         cfg = model.get("config", {})
-        self.entry_min_tr = int(params.get("entry_min_time_remaining", cfg.get("entry_min_time_remaining", 8)))
-        self.entry_max_tr = int(params.get("entry_max_time_remaining", cfg.get("entry_max_time_remaining", 70)))
+        self.entry_min_tr = int(
+            params.get(
+                "entry_min_time_remaining", cfg.get("entry_min_time_remaining", 8)
+            )
+        )
+        self.entry_max_tr = int(
+            params.get(
+                "entry_max_time_remaining", cfg.get("entry_max_time_remaining", 70)
+            )
+        )
         self.min_price = float(params.get("min_price", cfg.get("min_price", 0.55)))
         self.max_price = float(params.get("max_price", cfg.get("max_price", 0.985)))
 
-        self.ev_threshold = float(params.get("ev_threshold", 0.01))
-        self.base_size = float(params.get("base_size", 0.22))
+        self.ev_threshold = float(params.get("ev_threshold", 0.0))
+        self.base_size = float(params.get("base_size", 0.15))
+        # Exit controls to capture late peaks before reversals.
+        self.take_profit_cents = float(params.get("take_profit_cents", 0.015))
+        self.trailing_drop_cents = float(params.get("trailing_drop_cents", 0.008))
+        self.min_hold_s = int(params.get("min_hold_s", 1))
+        self.exit_time_cutoff_s = int(params.get("exit_time_cutoff_s", 2))
+        # Flip-aware exit: if reversal risk rises while holding, cut early.
+        self.flip_exit_enabled = bool(params.get("flip_exit_enabled", True))
+        self.flip_exit_min_hold_s = int(params.get("flip_exit_min_hold_s", 1))
+        self.flip_exit_prob_gap = float(params.get("flip_exit_prob_gap", 0.08))
+        self.flip_exit_opp_prob_min = float(params.get("flip_exit_opp_prob_min", 0.58))
+        self.flip_exit_ev_gap = float(params.get("flip_exit_ev_gap", 0.025))
+        self.flip_exit_gap_reversal = float(params.get("flip_exit_gap_reversal", 0.0))
+        self.flip_exit_slope_max = float(params.get("flip_exit_slope_max", -0.0008))
+        self.flip_exit_chop_min = float(params.get("flip_exit_chop_min", 0.10))
 
         self.use_safe_gating = bool(params.get("use_safe_gating", True))
         self.spread_cap = float(params.get("spread_cap", 0.03))
-        self.jump_cap = float(params.get("jump_cap", 0.03))
+        self.jump_cap = float(params.get("jump_cap", 0.02))
         self.vol_cap = float(params.get("vol_cap_30", 0.06))
-        self.flip_rate_cap = float(params.get("flip_rate_cap_30", 0.45))
+        self.flip_rate_cap = float(params.get("flip_rate_cap_30", 0.30))
+        # Integrate the "always down" edge as a soft prior in token ranking.
+        self.always_down_bias_enabled = bool(
+            params.get("always_down_bias_enabled", True)
+        )
+        self.always_down_time_low_s = int(params.get("always_down_time_low_s", 5))
+        self.always_down_time_high_s = int(params.get("always_down_time_high_s", 60))
+        self.always_down_price_max = float(params.get("always_down_price_max", 0.95))
+        self.always_down_sum_asks_max = float(
+            params.get("always_down_sum_asks_max", 1.00)
+        )
+        self.always_down_ev_bonus = float(params.get("always_down_ev_bonus", 0.008))
 
         self.entered = False
+        self.active_token: str | None = None
+        self.entry_price = 0.0
+        self.peak_price = 0.0
+        self.entry_ts = 0
         self.last_ts_ms = 0
         self.up_hist: deque[float] = deque(maxlen=360)
         self.down_hist: deque[float] = deque(maxlen=360)
@@ -97,6 +134,10 @@ class MLLateProfitStrategy:
     def on_market_start(self, market_ts: int) -> None:
         _ = market_ts
         self.entered = False
+        self.active_token = None
+        self.entry_price = 0.0
+        self.peak_price = 0.0
+        self.entry_ts = 0
         self.last_ts_ms = 0
         self.up_hist.clear()
         self.down_hist.clear()
@@ -117,18 +158,28 @@ class MLLateProfitStrategy:
         self.down_hist.append(tick.down_mid)
         self.gap_hist.append(tick.up_mid - tick.down_mid)
 
-    def _features(self, tick, token: str) -> list[float] | None:
+    def _features(
+        self, tick, token: str, enforce_price_bounds: bool = True
+    ) -> list[float] | None:
         if len(self.up_hist) < 35 or len(self.down_hist) < 35:
             return None
 
         sign = 1.0 if token == "up" else -1.0
         price = tick.up_ask if token == "up" else tick.down_ask
         other_price = tick.down_ask if token == "up" else tick.up_ask
-        if price < self.min_price or price > self.max_price:
+        if enforce_price_bounds and (price < self.min_price or price > self.max_price):
             return None
 
-        token_spread = (tick.up_ask - tick.up_bid) if token == "up" else (tick.down_ask - tick.down_bid)
-        other_spread = (tick.down_ask - tick.down_bid) if token == "up" else (tick.up_ask - tick.up_bid)
+        token_spread = (
+            (tick.up_ask - tick.up_bid)
+            if token == "up"
+            else (tick.down_ask - tick.down_bid)
+        )
+        other_spread = (
+            (tick.down_ask - tick.down_bid)
+            if token == "up"
+            else (tick.up_ask - tick.up_bid)
+        )
 
         oriented_gap = sign * self.gap_hist[-1]
         abs_gap = abs(self.gap_hist[-1])
@@ -189,14 +240,112 @@ class MLLateProfitStrategy:
     def _ev(self, p_win: float, price: float) -> float:
         return p_win * ((SETTLE_PRICE / price) - 1.0) + (1.0 - p_win) * (-1.0)
 
-    def on_tick(self, ctx: StrategyContext):
-        if self.entered:
+    def _flip_exit_reason(self, tick, token: str, held_s: int) -> str | None:
+        if not self.flip_exit_enabled or held_s < self.flip_exit_min_hold_s:
+            return None
+        other = "down" if token == "up" else "up"
+        x_tok = self._features(tick, token, enforce_price_bounds=False)
+        x_oth = self._features(tick, other, enforce_price_bounds=False)
+        if x_tok is None or x_oth is None:
             return None
 
+        p_tok = self._p_win(x_tok)
+        p_oth = self._p_win(x_oth)
+        tok_price = tick.up_ask if token == "up" else tick.down_ask
+        oth_price = tick.down_ask if token == "up" else tick.up_ask
+        tok_ev = self._ev(p_tok, tok_price)
+        oth_ev = self._ev(p_oth, oth_price)
+
+        if (
+            p_oth - p_tok
+        ) >= self.flip_exit_prob_gap and p_oth >= self.flip_exit_opp_prob_min:
+            return f"ML flip-prob p_opp={p_oth:.3f} p_tok={p_tok:.3f}"
+        if (oth_ev - tok_ev) >= self.flip_exit_ev_gap:
+            return f"ML flip-ev ev_opp={oth_ev:.3f} ev_tok={tok_ev:.3f}"
+
+        if len(self.gap_hist) >= 12:
+            sign = 1.0 if token == "up" else -1.0
+            og = [sign * g for g in list(self.gap_hist)[-12:]]
+            og_now = og[-1]
+            og_slope = _slope(og)
+            og_flip = _flip_rate(og)
+            if (
+                og_now <= self.flip_exit_gap_reversal
+                and og_slope <= self.flip_exit_slope_max
+                and og_flip >= self.flip_exit_chop_min
+            ):
+                return (
+                    f"ML flip-shape gap={og_now:.3f} sl={og_slope:.4f} "
+                    f"chop={og_flip:.2f}"
+                )
+        return None
+
+    def on_tick(self, ctx: StrategyContext):
         tick = ctx.latest()
         if tick is None:
             return None
         self._update(tick)
+
+        # Exit management for existing position.
+        if self.active_token is not None:
+            token = self.active_token
+            pos_qty = ctx.position(token)
+            if pos_qty <= 1e-9:
+                self.active_token = None
+                self.entry_price = 0.0
+                self.peak_price = 0.0
+                self.entry_ts = 0
+                return None
+
+            px = tick.up_mid if token == "up" else tick.down_mid
+            if px > self.peak_price:
+                self.peak_price = px
+
+            gain = px - self.entry_price
+            drop_from_peak = self.peak_price - px
+            held_s = max(0, tick.timestamp - self.entry_ts)
+
+            if tick.time_remaining <= self.exit_time_cutoff_s:
+                self.active_token = None
+                return Action(
+                    side="sell",
+                    token=token,
+                    size=1.0,
+                    comment=f"ML time-exit tr={tick.time_remaining}",
+                )
+
+            flip_reason = self._flip_exit_reason(tick=tick, token=token, held_s=held_s)
+            if flip_reason is not None:
+                self.active_token = None
+                return Action(
+                    side="sell",
+                    token=token,
+                    size=1.0,
+                    comment=flip_reason,
+                )
+
+            if held_s >= self.min_hold_s and gain >= self.take_profit_cents:
+                self.active_token = None
+                return Action(
+                    side="sell",
+                    token=token,
+                    size=1.0,
+                    comment=f"ML tp +{gain:.3f}",
+                )
+
+            if held_s >= self.min_hold_s and drop_from_peak >= self.trailing_drop_cents:
+                self.active_token = None
+                return Action(
+                    side="sell",
+                    token=token,
+                    size=1.0,
+                    comment=f"ML trail drop={drop_from_peak:.3f}",
+                )
+
+            return None
+
+        if self.entered:
+            return None
 
         if not (self.entry_min_tr <= tick.time_remaining <= self.entry_max_tr):
             return None
@@ -217,6 +366,14 @@ class MLLateProfitStrategy:
                         return None
 
         best = None
+        down_bias_active = (
+            self.always_down_bias_enabled
+            and self.always_down_time_low_s
+            <= tick.time_remaining
+            <= self.always_down_time_high_s
+            and tick.down_ask <= self.always_down_price_max
+            and (tick.up_ask + tick.down_ask) <= self.always_down_sum_asks_max
+        )
         for token in ("up", "down"):
             x = self._features(tick, token)
             if x is None:
@@ -224,16 +381,25 @@ class MLLateProfitStrategy:
             price = tick.up_ask if token == "up" else tick.down_ask
             p = self._p_win(x)
             ev = self._ev(p, price)
-            if best is None or ev > best["ev"]:
-                best = {"token": token, "p": p, "ev": ev}
+            score = ev + (
+                self.always_down_ev_bonus
+                if (down_bias_active and token == "down")
+                else 0.0
+            )
+            if best is None or score > best["score"]:
+                best = {"token": token, "p": p, "ev": ev, "score": score}
 
         if best is None or best["ev"] < self.ev_threshold:
             return None
 
         self.entered = True
+        self.active_token = str(best["token"])
+        self.entry_price = tick.up_ask if self.active_token == "up" else tick.down_ask
+        self.peak_price = self.entry_price
+        self.entry_ts = tick.timestamp
         return Action(
             side="buy",
-            token=str(best["token"]),
+            token=self.active_token,
             size=self.base_size,
             comment=f"ML p={best['p']:.3f} ev={best['ev']:.3f}",
         )
